@@ -38,8 +38,35 @@
       "descRefund": "",
       "descOther": ""
     },
-    "updatedAt": "2026-11-19 17:02:17",
+    "updatedAt": "2026-11-19 17:02:24",
     "totalAmount": "4082.0"
+  },
+  {
+    "quoteNo": "P60004",
+    "refOrder": "P60004",
+    "advisorName": "小高",
+    "versionTime": "2026-11-19 17:02",
+    "paxCount": "",
+    "clientName": "",
+    "itinerary": [],
+    "costRows": [],
+    "showDiscount": false,
+    "descs": {
+      "descHotel": "",
+      "descCar": "",
+      "descGuide": "",
+      "descTicket": "",
+      "descFlight": "",
+      "descInsurance": "",
+      "descMeal": "",
+      "descShop": "",
+      "descNotice": "",
+      "descExtra": "",
+      "descRefund": "",
+      "descOther": ""
+    },
+    "updatedAt": "2026-11-19 17:02:24",
+    "totalAmount": "0.0"
   },
   {
     "quoteNo": "P60001",
