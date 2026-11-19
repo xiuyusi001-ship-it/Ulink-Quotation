@@ -14,6 +14,13 @@
         "qty": 1,
         "price": 2376,
         "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[BC-ANK5] 安卡拉市内包车 (舒适5座车)",
+        "qty": 1,
+        "price": 1706,
+        "discount": 100
       }
     ],
     "showDiscount": false,
@@ -31,8 +38,8 @@
       "descRefund": "",
       "descOther": ""
     },
-    "updatedAt": "2026-11-19 16:57:59",
-    "totalAmount": "2376.0"
+    "updatedAt": "2026-11-19 17:02:09",
+    "totalAmount": "4082.0"
   },
   {
     "quoteNo": "P60001",
