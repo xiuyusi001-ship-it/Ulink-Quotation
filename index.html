@@ -61,6 +61,7 @@
   .import-box { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; margin-top: 8px; }
   .import-card { background: #222; padding: 10px; border-radius: 4px; border: 1px solid #555; }
 
+  /* 快捷规则标签样式 */
   .quick-rules-bar {
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     margin: 6px 0 8px 0;
@@ -74,6 +75,7 @@
     background: #4c1d95; color: #fff;
   }
 
+  /* 历史报价检索列表 */
   .history-list {
     margin-top: 10px; max-height: 220px; overflow-y: auto;
     background: #222; border: 1px solid #555; border-radius: 4px;
@@ -124,6 +126,7 @@
   .op-col { width: 45px !important; white-space: nowrap; padding: 4px 0 !important; }
   .draggable-row { cursor: grab; }
 
+  /* 配色区分 */
   .row-section td { background-color: #111 !important; color: #fff !important; font-weight: bold; text-align: left; padding: 6px 8px; font-size: 11.5px; border-color: #111 !important; }
   .row-product td { background-color: #fff; color: #000; }
   .row-note td { background-color: #f1f5f9 !important; color: #475569 !important; font-style: italic; text-align: left; border-color: #cbd5e1 !important; }
@@ -156,46 +159,12 @@
   .notice-footer { margin-top: 15px; font-size: 10.5px; color: #d32f2f; line-height: 1.4; font-weight: normal; }
   
   .desc-block { margin-top: 10px; font-size: 11px; }
-  .desc-item { margin-bottom: 8px; }
-  .desc-header {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 8px; margin-bottom: 3px; flex-wrap: wrap;
-  }
-  .desc-header h4 { font-weight: bold; color: #333; margin: 0; }
-  .desc-controls { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .desc-preset-select {
-    font-size: 10.5px; padding: 1px 5px; border: 1px solid #94a3b8;
-    border-radius: 3px; background: #f8fafc; color: #1e293b; max-width: 190px;
-  }
-  .desc-save-btn {
-    font-size: 10px; padding: 1px 6px; border: 1px solid #64748b;
-    border-radius: 3px; background: #fff; color: #334155; cursor: pointer;
-  }
-  .desc-save-btn:hover { background: #e2e8f0; }
-  .desc-none-tag {
-    font-size: 10px; color: #64748b; background: #f1f5f9;
-    padding: 1px 5px; border-radius: 3px; display: none;
-  }
-  .desc-input {
-    width: 100%; border: 1px solid #ddd; padding: 4px 6px; min-height: 28px;
-    resize: vertical; font-family: inherit; font-size: 11px; line-height: 1.35;
-  }
-  .desc-item.is-none .desc-input { display: none; }
-  .desc-item.is-none .desc-none-tag { display: inline-block; }
+  .desc-block h4 { font-weight: bold; margin-bottom: 2px; color: #333; }
+  .desc-input { width: 100%; border: 1px solid #ddd; padding: 3px; min-height: 25px; resize: vertical; font-family: inherit; font-size: 11px;}
 
   .page-break { page-break-before: always; }
-  .footer-block {
-    margin-top: 28px;
-    padding-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    font-size: 11px;
-    line-height: 1.45;
-  }
-  .footer-company { font-weight: normal; color: #111; }
-  .footer-company-title { font-weight: bold; color: #000; }
-  .footer-meta { text-align: left; min-width: 195px; color: #111; }
+  .footer-block { margin-top: 40px; font-size: 11px; line-height: 1.5; font-weight: bold;}
+  .footer-block .signature { margin-top: 30px; }
 
   .edit-only { display: inline-flex; align-items: center; gap: 4px; }
   .mini-btn { background: #666; color: #fff; border: none; padding: 2px 6px; font-size: 10px; border-radius: 2px; cursor: pointer; }
@@ -221,6 +190,7 @@
   .dropdown-item:hover { background-color: #f0f0f0; }
   .dropdown-item .item-name { flex: 1; text-align: left; color: #000; }
 
+  /* AI 解析加载遮罩层 */
   #aiLoadingOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.7); z-index: 9999;
@@ -236,8 +206,7 @@
 
   @media print {
     body { background: #fff; }
-    .toolbar, .drawer-panel, .bottom-action-bar, button, .custom-dropdown, .print-hide, #aiLoadingOverlay, .desc-controls, .desc-none-tag { display: none !important; }
-    .desc-item.is-none { display: none !important; }
+    .toolbar, .drawer-panel, .bottom-action-bar, button, .custom-dropdown, .print-hide, #aiLoadingOverlay { display: none !important; }
     .page { margin: 0; padding: 3mm 12mm 10mm 12mm; box-shadow: none; width: 100%; min-height: auto; }
     input.editable, .desc-input { border: none !important; background: transparent !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -249,10 +218,11 @@
 </head>
 <body>
 
+  <!-- AI 思考遮罩层 -->
   <div id="aiLoadingOverlay">
     <div class="spinner"></div>
     <div>DeepSeek AI 正在智能归类报价，请稍候...</div>
-    <div style="font-size:12px; color:#aaa; margin-top:10px; font-weight:normal;">(正在比对产品库、核对导游天数与小费人数、分析航班与车型)</div>
+    <div style="font-size:12px; color:#aaa; margin-top:10px; font-weight:normal;">(正在比对产品库、分析航班与导游规则并计算价格)</div>
   </div>
 
   <input type="file" id="catalogFileInput" accept=".xlsx,.xls,.csv,.txt,.json" style="display:none" onchange="handleCatalogFileUpload(event)">
@@ -277,6 +247,7 @@
     </div>
   </div>
 
+  <!-- 历史报价检索面板 -->
   <div class="drawer-panel" id="historyPanel">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
       <div>
@@ -330,9 +301,10 @@
 
   <div class="drawer-panel" id="aiPanel">
     <div style="margin-bottom: 6px; color:#ccc; font-weight:bold;">
-      AI 将严格按照您指定的车型、实际导游天数、导游小费（导游天数 × 人数）及航班机场进行解析。缺项自动忽略，绝不乱造产品。
+      AI 将严格按照您指定的车型、导游规则、导游小费及航班机场进行解析。缺项自动忽略，绝不乱造产品。
     </div>
 
+    <!-- 必选车型栏 -->
     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; background:#222; padding:8px 10px; border-radius:4px; border:1px solid #555;">
       <label for="vehicleSelect" style="color:#fbbf24; font-weight:bold;">🚐 导入行程车型（必选）：</label>
       <select id="vehicleSelect" style="background:#111; color:#fff; border:1px solid #7c3aed; padding:4px 8px; border-radius:3px; font-size:12px; min-width:180px;">
@@ -354,11 +326,13 @@
 2.11 伊斯坦布尔市区包车一日游，中文导游
 2.12 伊斯坦布尔飞卡帕（航班PC123），接机，下午卡帕红线包车，晚上热气球"></textarea>
     
+    <!-- 快捷添加规则标签（无手动保存按钮） -->
     <div style="margin-top: 8px; color:#ddd; font-size:11px; font-weight:bold;">
       ⚡ 快捷添加规则（点击追加到下方规则框）：
     </div>
     <div class="quick-rules-bar" id="quickRulesBar"></div>
 
+    <!-- 临时附加规则 -->
     <div style="margin-bottom: 4px; color:#aaa; font-size:11px;">
       💡 附加规则（将一并发送给 AI）：
     </div>
@@ -453,21 +427,31 @@
       *注:请您仔细核对报价单中的所有项目和数量是否准确，如果您报价单中遗漏了某些产品或服务或数量不准确，请及时通知我们进行调整。任何报价单中未列出的额外产品或服务可能会产生附加费用，感谢您的理解与合作! 本报价有效期为10天，过期后的产品或服务价格变化将会由您承担!
     </div>
 
-    <div class="desc-block" id="descBlockPage1"></div>
+    <div class="desc-block">
+      <div style="margin-bottom: 6px;"><h4>酒店说明:</h4><textarea class="desc-input" onchange="saveState()" id="descHotel"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>用车说明:</h4><textarea class="desc-input" onchange="saveState()" id="descCar"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>导游说明:</h4><textarea class="desc-input" onchange="saveState()" id="descGuide"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>门票说明:</h4><textarea class="desc-input" onchange="saveState()" id="descTicket"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>机票说明:</h4><textarea class="desc-input" onchange="saveState()" id="descFlight"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>保险说明:</h4><textarea class="desc-input" onchange="saveState()" id="descInsurance"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>用餐说明:</h4><textarea class="desc-input" onchange="saveState()" id="descMeal"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>购物说明:</h4><textarea class="desc-input" onchange="saveState()" id="descShop"></textarea></div>
+    </div>
     
     <div class="page-break"></div>
-    <div class="desc-block" id="descBlockPage2" style="margin-top: 0;"></div>
+    <div class="desc-block" style="margin-top: 0;">
+      <div style="margin-bottom: 6px;"><h4>注意事项:</h4><textarea class="desc-input" onchange="saveState()" id="descNotice"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>补充说明:</h4><textarea class="desc-input" onchange="saveState()" id="descExtra"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>退改说明:</h4><textarea class="desc-input" onchange="saveState()" id="descRefund"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>其他:</h4><textarea class="desc-input" onchange="saveState()" id="descOther"></textarea></div>
+    </div>
 
-    <div class="footer-block" id="quoteFooterBlock">
-      <div class="footer-company">
-        <div class="footer-company-title">Ulink Turizm Ve Dis Ticaret Limited Sirketi</div>
-        <div>Karagumruk mah kaleboyu cad no21/2, fatih, istanbul</div>
-        <div>Vat:8870576735 | Tursab No:10242</div>
-      </div>
-      <div class="footer-meta">
-        <div>负责人:<span id="footerAdvisor"></span></div>
-        <div>日期:<span id="footerDate"></span></div>
-      </div>
+    <div class="footer-block">
+      <div>Ulink Turizm Ve Dis Ticaret Limited Sirketi</div>
+      <div>Karagumruk mah kaleboyu cad no21/2, fatih, istanbul</div>
+      <div>Vat:8870576735 | Tursab No:10242</div>
+      <div class="signature">负责人: <span id="footerAdvisor"></span></div>
+      <div>日期: <span id="footerDate"></span></div>
     </div>
   </div>
 
@@ -489,79 +473,14 @@
     "所有行程不包餐",
     "导游按全天算",
     "全程导游按规定区分市内与跨城",
-    "含导游每人每天小费（数量=导游天数×人数）"
+    "含导游每人每天小费"
   ];
 
-  const DESC_FIELDS = [
-    { id: 'descHotel', label: '酒店说明:', page: 1, mode: 'general' },
-    { id: 'descCar', label: '用车说明:', page: 1, mode: 'car' },
-    { id: 'descGuide', label: '导游说明:', page: 1, mode: 'guide' },
-    { id: 'descTicket', label: '门票说明:', page: 1, mode: 'general' },
-    { id: 'descFlight', label: '机票说明:', page: 1, mode: 'flight' },
-    { id: 'descInsurance', label: '保险说明:', page: 1, mode: 'insurance' },
-    { id: 'descMeal', label: '用餐说明:', page: 1, mode: 'general' },
-    { id: 'descShop', label: '购物说明:', page: 1, mode: 'general' },
-    { id: 'descNotice', label: '注意事项:', page: 2, mode: 'general' },
-    { id: 'descExtra', label: '补充说明:', page: 2, mode: 'general' },
-    { id: 'descRefund', label: '退改说明:', page: 2, mode: 'general' },
-    { id: 'descOther', label: '其他:', page: 2, mode: 'general' }
-  ];
-
-  const DEFAULT_DESC_PRESETS = {
-    descHotel: [
-      { title: '无', text: '' }
-    ],
-    descCar: [
-      { title: '5座车型', text: '全程安排舒适5座车（建议乘坐1-3人及行李）。' },
-      { title: '7座车型', text: '全程安排商务7座车（建议乘坐3-5人及行李）。' },
-      { title: '12座车型', text: '全程安排商务12座车（建议乘坐5-9人及行李）。' },
-      { title: '15座车型', text: '全程安排商务15座车（建议乘坐8-12人及行李）。' },
-      { title: '无', text: '' }
-    ],
-    descGuide: [
-      { title: '含导游', text: '含行程所列中文导游服务及每人每天导游小费。' },
-      { title: '不含导游', text: '不含导游服务，行程期间无随团/全程导游陪同。' },
-      { title: '含部分导游', text: '仅含指定城市/指定日期导游服务，其余行程不含导游。' },
-      { title: '无', text: '' }
-    ],
-    descTicket: [
-      { title: '无', text: '' }
-    ],
-    descFlight: [
-      { title: '含机票', text: '含行程所列境内外机票及税费（以实际出票为准）。' },
-      { title: '不含机票', text: '不含国际及土耳其境内段机票。' },
-      { title: '含部分机票', text: '仅含行程中明确注明的指定航段机票，其余机票自理。' },
-      { title: '无', text: '' }
-    ],
-    descInsurance: [
-      { title: '含保险', text: '含境外旅游意外及医疗保障保险（按实际参团人数投保）。' },
-      { title: '不含保险', text: '不含旅游保险，建议客人出行前自行购买足额旅游保险。' },
-      { title: '含导游不含保险', text: '含导游服务，不含旅游保险。' },
-      { title: '无', text: '' }
-    ],
-    descMeal: [
-      { title: '无', text: '' }
-    ],
-    descShop: [
-      { title: '无', text: '' }
-    ],
-    descNotice: [
-      { title: '无', text: '' }
-    ],
-    descExtra: [
-      { title: '无', text: '' }
-    ],
-    descRefund: [
-      { title: '无', text: '' }
-    ],
-    descOther: [
-      { title: '无', text: '' }
-    ]
-  };
-
+  // 内置默认 API 配置（供团队共用）
   const DEFAULT_API_ENDPOINT = "https://api.deepseek.com/chat/completions";
   const DEFAULT_API_MODEL = "deepseek-chat";
   const DEFAULT_API_KEY = "sk-3241ec510b8a4f97b91f183510de9fc2";
+  // 仓库同目录产品库文件名与报价档案配置
   const DEFAULT_EXCEL_URL = "./ULINK%E4%BA%A7%E5%93%81%E5%BA%93.xlsx";
   const DEFAULT_GH_REPO = "xiuyusi001-ship-it/Ulink-Quotation";
   const DEFAULT_GH_BRANCH = "main";
@@ -571,199 +490,11 @@
   let productCatalog = [];
   let itineraryData = [];
   let costRows = [];
-  let descPresets = {};
-  let descSelectedModes = {};
   let showDiscount = false;
   let activeInputIdx = null;
   let ghSyncTimer = null;
 
-  function loadDescPresets() {
-    let customMap = {};
-    try {
-      const raw = localStorage.getItem('ulink_desc_presets_v1');
-      if (raw) customMap = JSON.parse(raw) || {};
-    } catch (_) {}
-
-    descPresets = {};
-    DESC_FIELDS.forEach(f => {
-      const baseList = DEFAULT_DESC_PRESETS[f.id] || [{ title: '无', text: '' }];
-      const extraList = Array.isArray(customMap[f.id]) ? customMap[f.id] : [];
-      const merged = [];
-      const seen = new Set();
-
-      [...baseList, ...extraList].forEach(opt => {
-        if (!opt || !opt.title) return;
-        const key = `${opt.title}::${opt.text || ''}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          merged.push({ title: opt.title, text: opt.text || '' });
-        }
-      });
-
-      if (!merged.some(o => o.title === '无')) {
-        merged.push({ title: '无', text: '' });
-      }
-      descPresets[f.id] = merged;
-    });
-  }
-
-  function saveCustomDescPreset(fieldId) {
-    const textarea = document.getElementById(fieldId);
-    const selectEl = document.getElementById(`presetSelect_${fieldId}`);
-    if (!textarea) return;
-    const textVal = textarea.value.trim();
-    if (!textVal) {
-      alert('请先在说明框里填写或修改好内容，再点击“存为预设”。');
-      return;
-    }
-
-    const defaultTitle = (selectEl && selectEl.value && selectEl.value !== '无' && selectEl.value !== '__CUSTOM__')
-      ? selectEl.value
-      : textVal.slice(0, 12);
-    const titleInput = prompt('请输入这条预设选项的名称（例如：5座车、含部分导游、含部分机票）：', defaultTitle);
-    if (titleInput === null) return;
-    const title = titleInput.trim();
-    if (!title) {
-      alert('预设名称不能为空');
-      return;
-    }
-
-    let customMap = {};
-    try {
-      const raw = localStorage.getItem('ulink_desc_presets_v1');
-      if (raw) customMap = JSON.parse(raw) || {};
-    } catch (_) {}
-
-    if (!Array.isArray(customMap[fieldId])) customMap[fieldId] = [];
-    customMap[fieldId] = customMap[fieldId].filter(x => x.title !== title);
-    customMap[fieldId].push({ title, text: textVal });
-    localStorage.setItem('ulink_desc_presets_v1', JSON.stringify(customMap));
-
-    loadDescPresets();
-    refreshPresetDropdown(fieldId, title);
-    descSelectedModes[fieldId] = title;
-    applyDescNoneVisualState(fieldId);
-    saveState();
-    alert(`已保存“${title}”到该说明的预设选项中！`);
-  }
-
-  function refreshPresetDropdown(fieldId, selectedValue = '') {
-    const selectEl = document.getElementById(`presetSelect_${fieldId}`);
-    if (!selectEl) return;
-    const opts = descPresets[fieldId] || [{ title: '无', text: '' }];
-    selectEl.innerHTML = '';
-
-    opts.forEach(opt => {
-      const o = document.createElement('option');
-      o.value = opt.title;
-      o.innerText = opt.title;
-      selectEl.appendChild(o);
-    });
-
-    const customOpt = document.createElement('option');
-    customOpt.value = '__CUSTOM__';
-    customOpt.innerText = '自定义/已修改';
-    selectEl.appendChild(customOpt);
-
-    if (selectedValue && Array.from(selectEl.options).some(o => o.value === selectedValue)) {
-      selectEl.value = selectedValue;
-    } else {
-      selectEl.value = '__CUSTOM__';
-    }
-  }
-
-  function applyDescNoneVisualState(fieldId) {
-    const wrap = document.getElementById(`descWrap_${fieldId}`);
-    const selectEl = document.getElementById(`presetSelect_${fieldId}`);
-    const textarea = document.getElementById(fieldId);
-    if (!wrap || !selectEl) return;
-    const isNone = selectEl.value === '无' && (!textarea || textarea.value.trim() === '');
-    descSelectedModes[fieldId] = selectEl.value;
-    if (isNone) {
-      wrap.classList.add('is-none');
-    } else {
-      wrap.classList.remove('is-none');
-    }
-  }
-
-  function onPresetSelectChange(fieldId) {
-    const selectEl = document.getElementById(`presetSelect_${fieldId}`);
-    const textarea = document.getElementById(fieldId);
-    if (!selectEl || !textarea) return;
-    const chosen = selectEl.value;
-
-    if (chosen === '无') {
-      textarea.value = '';
-      applyDescNoneVisualState(fieldId);
-      saveState();
-      return;
-    }
-
-    if (chosen === '__CUSTOM__') {
-      applyDescNoneVisualState(fieldId);
-      saveState();
-      return;
-    }
-
-    const found = (descPresets[fieldId] || []).find(o => o.title === chosen);
-    if (found) {
-      textarea.value = found.text || '';
-    }
-    applyDescNoneVisualState(fieldId);
-    saveState();
-  }
-
-  function onDescTextareaChange(fieldId) {
-    const selectEl = document.getElementById(`presetSelect_${fieldId}`);
-    const textarea = document.getElementById(fieldId);
-    if (selectEl && textarea) {
-      if (textarea.value.trim() === '' && selectEl.value === '无') {
-        selectEl.value = '无';
-      } else {
-        const matched = (descPresets[fieldId] || []).find(o => o.text === textarea.value && o.title !== '无');
-        selectEl.value = matched ? matched.title : '__CUSTOM__';
-      }
-    }
-    applyDescNoneVisualState(fieldId);
-    saveState();
-  }
-
-  function renderDescBlocks() {
-    const p1 = document.getElementById('descBlockPage1');
-    const p2 = document.getElementById('descBlockPage2');
-    if (!p1 || !p2) return;
-    p1.innerHTML = '';
-    p2.innerHTML = '';
-
-    DESC_FIELDS.forEach(f => {
-      const item = document.createElement('div');
-      item.className = 'desc-item';
-      item.id = `descWrap_${f.id}`;
-      item.innerHTML = `
-        <div class="desc-header">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <h4>${f.label}</h4>
-            <span class="desc-none-tag" id="noneTag_${f.id}">已选“无”（打印隐藏）</span>
-          </div>
-          <div class="desc-controls">
-            <select class="desc-preset-select" id="presetSelect_${f.id}" onchange="onPresetSelectChange('${f.id}')"></select>
-            <button type="button" class="desc-save-btn" onclick="saveCustomDescPreset('${f.id}')">+ 存为预设</button>
-          </div>
-        </div>
-        <textarea class="desc-input" id="${f.id}" onchange="onDescTextareaChange('${f.id}')"></textarea>
-      `;
-      if (f.page === 1) p1.appendChild(item);
-      else p2.appendChild(item);
-
-      refreshPresetDropdown(f.id, '无');
-      applyDescNoneVisualState(f.id);
-    });
-  }
-
   function init() {
-    loadDescPresets();
-    renderDescBlocks();
-
     const empSelect = document.getElementById('employeeSelect');
     empSelect.innerHTML = '';
     Object.keys(EMPLOYEES).forEach(name => {
@@ -813,6 +544,7 @@
 
     renderAll();
     renderHistoryList();
+    // 页面加载后自动从仓库同目录读取最新产品库 Excel 和报价档案
     autoLoadRemoteCatalog();
     syncFromGitHub(true);
   }
@@ -858,6 +590,7 @@
     const headers = { Accept: 'application/vnd.github+json' };
     if (cfg.token) headers.Authorization = `Bearer ${cfg.token}`;
 
+    // 优先通过 GitHub Contents API 获取最新内容与 sha
     const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`;
     const res = await fetch(apiUrl, { headers });
     if (res.status === 404) {
@@ -903,6 +636,7 @@
       setGhSyncStatus(`已同步仓库（${merged.length} 条）`);
       if (!silent) alert(`已从 GitHub 同步 ${merged.length} 条报价记录！`);
     } catch (err) {
+      // 无 Token 或 API 限流时尝试读取 raw 文件只读兜底
       try {
         const rawUrl = `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${cfg.branch}/${cfg.path}?t=${Date.now()}`;
         const r = await fetch(rawUrl);
@@ -978,7 +712,7 @@
     if (ghSyncTimer) clearTimeout(ghSyncTimer);
     ghSyncTimer = setTimeout(() => {
       syncToGitHub(true);
-    }, 1000);
+    }, 1200);
   }
 
   // ================= 自动从仓库同目录读取 ULINK产品库.xlsx =================
@@ -1029,15 +763,6 @@
     return `P${empCode}${String(lastNoNum).padStart(4, '0')}`;
   }
 
-  function resetDescriptionsToNone() {
-    DESC_FIELDS.forEach(f => {
-      const el = document.getElementById(f.id);
-      if (el) el.value = '';
-      refreshPresetDropdown(f.id, '无');
-      applyDescNoneVisualState(f.id);
-    });
-  }
-
   function createNewQuote() {
     if (!confirm('确定要创建新报价吗？当前页面内容会自动存入历史档案，然后生成全新的空白报价单和编号。')) return;
     saveState();
@@ -1047,7 +772,7 @@
     costRows = [];
     showDiscount = false;
     document.getElementById('thDiscount').style.display = 'none';
-    resetDescriptionsToNone();
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
 
     document.getElementById('quoteNo').value = newNo;
     document.getElementById('quoteNoSpan').innerText = newNo;
@@ -1156,22 +881,11 @@
     document.getElementById('paxCount').value = item.paxCount || '';
     document.getElementById('clientName').value = item.clientName || '';
 
-    resetDescriptionsToNone();
-    const savedModes = item.descModes || {};
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
     if (item.descs) {
-      DESC_FIELDS.forEach(f => {
-        const el = document.getElementById(f.id);
-        const val = item.descs[f.id] || '';
-        if (el) el.value = val;
-        if (savedModes[f.id]) {
-          refreshPresetDropdown(f.id, savedModes[f.id]);
-        } else if (val.trim() === '') {
-          refreshPresetDropdown(f.id, '无');
-        } else {
-          const matched = (descPresets[f.id] || []).find(o => o.text === val && o.title !== '无');
-          refreshPresetDropdown(f.id, matched ? matched.title : '__CUSTOM__');
-        }
-        applyDescNoneVisualState(f.id);
+      Object.keys(item.descs).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = item.descs[id];
       });
     }
 
@@ -1187,7 +901,7 @@
     scheduleGitHubSync();
   }
 
-  // ================= 一键折扣 =================
+  // ================= 一键折扣（跳过酒店/门票/机票） =================
   function applyBatchDiscount() {
     const input = prompt('请输入统一折扣百分比（例如输入 90 代表 9 折，输入 100 代表无折扣）：\n注：含“酒店、门票、机票”字样的项目将自动跳过，需手动修改。', '95');
     if (input === null) return;
@@ -1269,7 +983,7 @@
     const customRules = document.getElementById('customRules').value.trim();
     const paxVal = document.getElementById('paxCount').value.trim();
 
-    const confirmMsg = `🚀 即将调用 DeepSeek AI\n\n已指定车型：${selectedVehicle}\nAI 将严格核对实际导游天数、导游小费（导游天数 × 人数）、车型及航班机场。\n\n大模型推理约需 10~20 秒，请确认开始？`;
+    const confirmMsg = `🚀 即将调用 DeepSeek AI\n\n已指定车型：${selectedVehicle}\nAI 将严格执行车型匹配、导游规则、导游小费与航班机场识别。\n\n大模型推理约需 10~20 秒，请确认开始？`;
     if (!confirm(confirmMsg)) return;
 
     const overlay = document.getElementById('aiLoadingOverlay');
@@ -1284,13 +998,12 @@ ${paxVal ? `【报价单人数参考】：${paxVal} 人\n` : ''}
 【重大业务规则】
 规则 1：【按日期分小节】。识别出文本中的每一个日期（如 "2.10", "D1"），将其作为独立的 section（小节），小节名字就是该日期。每个日期小节下优先提取当天的用车产品（接送机、包车）。
 规则 2：【车型匹配】。所有用车（接送机、包车等）必须优先匹配用户选定的车型“${selectedVehicle}”对应的产品库项目；若产品库中无完全同字眼，也只能匹配该车型对应的产品，绝不能擅自换成其他车型。
-规则 3：【导游天数与导游小费严格计算】。
+规则 3：【导游规则与导游小费】。
 - 默认在行程开始城市安排导游，一般为伊斯坦布尔。
 - 只有“伊斯坦布尔”和“卡帕多奇亚”可以安排“全程导游”。
 - 其他城市仅“伊兹密尔的以弗所”和“安塔利亚”可以安排导游。
 - 如果客人需要“全程导游”：伊斯坦布尔段匹配“市内导游”；非伊斯坦布尔段（如当天从伊斯坦布尔到卡帕多奇亚或伊兹密尔等其他城市）匹配“跨城导游”。
-- 【导游数量（qty）必须按实际导游天数核算】：仔细统计整段行程中有多少天安排了导游（例如全程 6 天都有导游，qty 必须是 6，绝不能少算成 1 天或 2 天；若同一天市内导游和跨城导游分开写，按各自实际天数计，合计天数等于实际导游天数）。
-- 【导游小费数量（qty）必须按“导游天数 × 客人人数”核算】：导游每人每天 1 个小费。先确定实际导游天数 D（例如 2 天），再确定客人人数 N（优先取行程文本中明确写的人数，若文本未写则取报价单人数 ${paxVal || '1'}；若均未写则按 1 人计），导游小费产品的 qty 必须等于 D × N（例如 2 天导游、3 位客人，qty = 2 × 3 = 6）。若产品库中无对应小费产品，则按规则 7 忽略不捏造。
+- 导游每人每天有一个小费：如产品库中有导游小费相关产品，按导游天数 × 导游人数匹配；若产品库中无对应小费产品，则按规则 7 忽略不捏造。
 - 提取的所有导游及导游小费全部汇总到名为 "导游" 的 section 下。
 规则 4：【门票独立小节】。全篇所有门票汇总到 "门票" 的 section 下。
 规则 5：【玩乐独立小节】。全篇所有热气球、一日游等玩乐项目汇总到 "玩乐" 的 section 下。
@@ -1311,7 +1024,7 @@ ${customRules ? `【客户/销售员临时附加规则】\n${customRules}\n` : '
     { "type": "section", "text": "2.10" },
     { "type": "product", "desc": "[JSJ-IST5] 伊斯坦布尔接送机 (${selectedVehicle})", "qty": 1, "price": 324 },
     { "type": "section", "text": "导游" },
-    { "type": "product", "desc": "[GUIDE-CN] 中文导游", "qty": 6, "price": 500 }
+    { "type": "product", "desc": "[GUIDE-CN] 中文导游", "qty": 2, "price": 500 }
   ]
 }
 
@@ -1378,7 +1091,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
         costRows = newCostRows;
         renderAll();
         toggleDrawer('aiPanel');
-        alert(`✅ 解析成功！已按【${selectedVehicle}】及业务规则自动归类。请核对导游天数与小费数量！`);
+        alert(`✅ 解析成功！已按【${selectedVehicle}】及业务规则自动归类。请核对细节！`);
       } else {
         throw new Error('未能从文本中提取出有效的匹配项。');
       }
@@ -1391,6 +1104,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     }
   }
 
+  // 辅助：确保输入框内拖选文字不被行拖拽打断
   function bindTextSelectProtection(tr, dataArray, idx) {
     tr.draggable = true;
     tr.ondragstart = (e) => {
@@ -1453,7 +1167,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     itineraryData = [];
     costRows = [];
     showDiscount = false;
-    resetDescriptionsToNone();
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
     
     if (savedState) {
       try {
@@ -1471,21 +1185,10 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
         document.getElementById('paxCount').value = parsed.paxCount || '';
         document.getElementById('clientName').value = parsed.clientName || '';
         
-        const savedModes = parsed.descModes || {};
         if (parsed.descs) {
-          DESC_FIELDS.forEach(f => {
-            const el = document.getElementById(f.id);
-            const val = parsed.descs[f.id] || '';
-            if (el) el.value = val;
-            if (savedModes[f.id]) {
-              refreshPresetDropdown(f.id, savedModes[f.id]);
-            } else if (val.trim() === '') {
-              refreshPresetDropdown(f.id, '无');
-            } else {
-              const matched = (descPresets[f.id] || []).find(o => o.text === val && o.title !== '无');
-              refreshPresetDropdown(f.id, matched ? matched.title : '__CUSTOM__');
-            }
-            applyDescNoneVisualState(f.id);
+          Object.keys(parsed.descs).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = parsed.descs[id];
           });
         }
       } catch(e){}
@@ -1505,12 +1208,8 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
 
   function saveState() {
     const descs = {};
-    const descModes = {};
-    DESC_FIELDS.forEach(f => {
-      const el = document.getElementById(f.id);
-      const sel = document.getElementById(`presetSelect_${f.id}`);
-      descs[f.id] = el ? el.value : '';
-      descModes[f.id] = sel ? sel.value : '无';
+    document.querySelectorAll('.desc-input').forEach(el => {
+      descs[el.id] = el.value;
     });
 
     const payload = {
@@ -1523,8 +1222,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
       itinerary: itineraryData,
       costRows: costRows,
       showDiscount: showDiscount,
-      descs: descs,
-      descModes: descModes
+      descs: descs
     };
 
     const key = `ulink_quote_draft_v12_${currentEmployee}`;
@@ -1554,8 +1252,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
 
   function getFormatTime() {
     const d = new Date();
-    const micro = String(d.getMilliseconds() * 1000 + Math.floor(Math.random() * 999)).padStart(6, '0');
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${micro}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
   }
 
   function downloadPDF() {
@@ -1566,12 +1263,8 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     document.getElementById('footerAdvisor').innerText = document.getElementById('advisorName').value;
     document.getElementById('footerDate').innerText = getFormatTime();
     
-    const editElements = document.querySelectorAll('.edit-only, .bottom-action-bar, .custom-dropdown, .print-hide, .desc-controls, .desc-none-tag, .desc-item.is-none');
-    const prevDisplays = [];
-    editElements.forEach((el, i) => {
-      prevDisplays[i] = el.style.display;
-      el.style.display = 'none';
-    });
+    const editElements = document.querySelectorAll('.edit-only, .bottom-action-bar, .custom-dropdown, .print-hide');
+    editElements.forEach(el => el.style.display = 'none');
 
     const opt = {
       margin:       0,
@@ -1583,9 +1276,9 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     };
 
     html2pdf().from(element).set(opt).save().then(() => {
-      editElements.forEach((el, i) => { el.style.display = prevDisplays[i]; });
+      editElements.forEach(el => el.style.display = '');
     }).catch(() => {
-      editElements.forEach((el, i) => { el.style.display = prevDisplays[i]; });
+      editElements.forEach(el => el.style.display = '');
     });
   }
 
