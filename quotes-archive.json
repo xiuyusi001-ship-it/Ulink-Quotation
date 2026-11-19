@@ -1,1 +1,212 @@
-[]
+[
+  {
+    "quoteNo": "P60003",
+    "refOrder": "P60003",
+    "advisorName": "小高",
+    "versionTime": "2026-11-19 16:57",
+    "paxCount": "",
+    "clientName": "",
+    "itinerary": [],
+    "costRows": [],
+    "showDiscount": false,
+    "descs": {
+      "descHotel": "",
+      "descCar": "",
+      "descGuide": "",
+      "descTicket": "",
+      "descFlight": "",
+      "descInsurance": "",
+      "descMeal": "",
+      "descShop": "",
+      "descNotice": "",
+      "descExtra": "",
+      "descRefund": "",
+      "descOther": ""
+    },
+    "updatedAt": "2026-11-19 16:57:38",
+    "totalAmount": "0.0"
+  },
+  {
+    "quoteNo": "P60001",
+    "refOrder": "P60001",
+    "advisorName": "小高",
+    "versionTime": "2026-11-19 16:56",
+    "paxCount": "2",
+    "clientName": "北京远海",
+    "itinerary": [],
+    "costRows": [
+      {
+        "type": "section",
+        "text": "11/20"
+      },
+      {
+        "type": "product",
+        "desc": "[JSJ-ASR7] 开塞利机场接送机 (商务7座车)",
+        "qty": 1,
+        "price": 485,
+        "discount": 90
+      },
+      {
+        "type": "section",
+        "text": "11/21"
+      },
+      {
+        "type": "product",
+        "desc": "[BC-KAP-HX7] 卡帕多奇亚|红线包车 (商务7座车)",
+        "qty": 1,
+        "price": 819,
+        "discount": 90
+      },
+      {
+        "type": "section",
+        "text": "11/22"
+      },
+      {
+        "type": "product",
+        "desc": "[BC-KAP-LX7] 卡帕多奇亚|绿线包车 (商务7座车)",
+        "qty": 1,
+        "price": 1433,
+        "discount": 90
+      },
+      {
+        "type": "section",
+        "text": "11/24"
+      },
+      {
+        "type": "product",
+        "desc": "[JSJ-ASR7] 开塞利机场接送机 (商务7座车)",
+        "qty": 1,
+        "price": 485,
+        "discount": 90
+      },
+      {
+        "type": "section",
+        "text": "导游"
+      },
+      {
+        "type": "product",
+        "desc": "[QT-DY-SN] 导游 (市内导游(持证，含食不含小费))",
+        "qty": 2,
+        "price": 1820,
+        "discount": 90
+      },
+      {
+        "type": "product",
+        "desc": "[QT-FY-XF] 导游 (小费2美金/人/天)",
+        "qty": 2,
+        "price": 15,
+        "discount": 90
+      },
+      {
+        "type": "section",
+        "text": "门票"
+      },
+      {
+        "type": "product",
+        "desc": "[MP-KAP] 卡帕多奇亚门票 (乌奇萨城堡)",
+        "qty": 2,
+        "price": 80,
+        "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[MP-KAP] 卡帕多奇亚门票 (格雷梅露天博物馆)",
+        "qty": 2,
+        "price": 200,
+        "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[MP-KAP] 卡帕多奇亚门票 (Zelve 露天博物馆+精灵烟囱)",
+        "qty": 2,
+        "price": 145,
+        "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[MP-KAP] 卡帕多奇亚门票 (凯马克勒地下城)",
+        "qty": 2,
+        "price": 155,
+        "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[MP-KAP] 卡帕多奇亚门票 (厄赫拉热峡谷)",
+        "qty": 2,
+        "price": 160,
+        "discount": 100
+      }
+    ],
+    "showDiscount": true,
+    "descs": {
+      "descHotel": "",
+      "descCar": "",
+      "descGuide": "",
+      "descTicket": "",
+      "descFlight": "",
+      "descInsurance": "",
+      "descMeal": "",
+      "descShop": "",
+      "descNotice": "",
+      "descExtra": "",
+      "descRefund": "",
+      "descOther": ""
+    },
+    "updatedAt": "2026-11-19 16:57:38",
+    "totalAmount": "7682.8"
+  },
+  {
+    "quoteNo": "P60002",
+    "refOrder": "P60002",
+    "advisorName": "小高",
+    "versionTime": "2026-11-19 15:59",
+    "paxCount": "",
+    "clientName": "",
+    "itinerary": [],
+    "costRows": [],
+    "showDiscount": false,
+    "descs": {
+      "descHotel": "",
+      "descCar": "",
+      "descGuide": "",
+      "descTicket": "",
+      "descFlight": "",
+      "descInsurance": "",
+      "descMeal": "",
+      "descShop": "",
+      "descNotice": "",
+      "descExtra": "",
+      "descRefund": "",
+      "descOther": ""
+    },
+    "updatedAt": "2026-11-19 15:59:01",
+    "totalAmount": "0.0"
+  },
+  {
+    "quoteNo": "P90001",
+    "refOrder": "P90001",
+    "advisorName": "小宋",
+    "versionTime": "2026-11-19 15:53",
+    "paxCount": "",
+    "clientName": "",
+    "itinerary": [],
+    "costRows": [],
+    "showDiscount": false,
+    "descs": {
+      "descHotel": "",
+      "descCar": "",
+      "descGuide": "",
+      "descTicket": "",
+      "descFlight": "",
+      "descInsurance": "",
+      "descMeal": "",
+      "descShop": "",
+      "descNotice": "",
+      "descExtra": "",
+      "descRefund": "",
+      "descOther": ""
+    },
+    "updatedAt": "2026-11-19 15:53:46",
+    "totalAmount": "0.0"
+  }
+]
