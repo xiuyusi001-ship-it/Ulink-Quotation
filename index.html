@@ -249,9 +249,16 @@
 
   <!-- 历史报价检索面板 -->
   <div class="drawer-panel" id="historyPanel">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <strong>历史报价档案库（保存在当前浏览器本地存储，输入报价编号或客户名可快速查找）</strong>
-      <button class="btn btn-gray" onclick="toggleDrawer('historyPanel')">收起</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+      <div>
+        <strong>历史报价档案库（自动同步仓库 quotes-archive.json，同时保留本地缓存）</strong>
+        <span id="ghSyncStatus" style="margin-left:10px; color:#93c5fd; font-size:11px;"></span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="btn btn-blue" onclick="syncFromGitHub(false)">⬇️ 拉取最新</button>
+        <button class="btn btn-primary" onclick="syncToGitHub(false)">⬆️ 同步到仓库</button>
+        <button class="btn btn-gray" onclick="toggleDrawer('historyPanel')">收起</button>
+      </div>
     </div>
     <div style="display:flex; gap:8px; margin-top:8px;">
       <input type="text" id="historySearchInput" oninput="renderHistoryList()" placeholder="输入报价单编号（如 P90001）、客户或顾问名称..." style="flex:1; background:#111; color:#fff; border:1px solid #555; padding:5px 8px; border-radius:3px; font-size:12px;">
@@ -283,6 +290,11 @@
       <div><label>API 地址</label><input type="text" id="apiEndpoint" value="https://api.deepseek.com/chat/completions" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
       <div><label>Model</label><input type="text" id="apiModel" value="deepseek-chat" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
       <div><label>API Key</label><input type="password" id="apiKey" placeholder="sk-..." style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 2fr; gap:10px; margin-top:8px;">
+      <div><label>GitHub 仓库（owner/repo）</label><input type="text" id="ghRepo" value="xiuyusi001-ship-it/Ulink-Quotation" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+      <div><label>分支与档案文件</label><input type="text" id="ghBranchFile" value="main:quotes-archive.json" placeholder="main:quotes-archive.json" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+      <div><label>GitHub Token（仅限该仓库 Contents 读写）</label><input type="password" id="ghToken" placeholder="github_pat_..." style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
     </div>
     <button class="btn btn-primary" style="margin-top:6px;" onclick="saveApiSettings()">保存设置</button>
   </div>
@@ -468,8 +480,11 @@
   const DEFAULT_API_ENDPOINT = "https://api.deepseek.com/chat/completions";
   const DEFAULT_API_MODEL = "deepseek-chat";
   const DEFAULT_API_KEY = "sk-3241ec510b8a4f97b91f183510de9fc2";
-  // 仓库同目录产品库文件名
+  // 仓库同目录产品库文件名与报价档案配置
   const DEFAULT_EXCEL_URL = "./ULINK%E4%BA%A7%E5%93%81%E5%BA%93.xlsx";
+  const DEFAULT_GH_REPO = "xiuyusi001-ship-it/Ulink-Quotation";
+  const DEFAULT_GH_BRANCH = "main";
+  const DEFAULT_GH_FILE = "quotes-archive.json";
   
   let currentEmployee = '小宋';
   let productCatalog = [];
@@ -477,6 +492,7 @@
   let costRows = [];
   let showDiscount = false;
   let activeInputIdx = null;
+  let ghSyncTimer = null;
 
   function init() {
     const empSelect = document.getElementById('employeeSelect');
@@ -495,9 +511,18 @@
     const savedEndpoint = localStorage.getItem('ulink_api_endpoint') || DEFAULT_API_ENDPOINT;
     const savedModel = localStorage.getItem('ulink_api_model') || DEFAULT_API_MODEL;
     const savedKey = localStorage.getItem('ulink_api_key') || DEFAULT_API_KEY;
+    const savedGhRepo = localStorage.getItem('ulink_gh_repo') || DEFAULT_GH_REPO;
+    const savedGhBranch = localStorage.getItem('ulink_gh_branch') || DEFAULT_GH_BRANCH;
+    const savedGhFile = localStorage.getItem('ulink_gh_file') || DEFAULT_GH_FILE;
+    const savedGhToken = localStorage.getItem('ulink_gh_token') || '';
+
     document.getElementById('apiEndpoint').value = savedEndpoint;
     document.getElementById('apiModel').value = savedModel;
     document.getElementById('apiKey').value = savedKey;
+    document.getElementById('ghRepo').value = savedGhRepo;
+    document.getElementById('ghBranchFile').value = `${savedGhBranch}:${savedGhFile}`;
+    document.getElementById('ghToken').value = savedGhToken;
+
     if (!localStorage.getItem('ulink_api_key')) {
       localStorage.setItem('ulink_api_key', DEFAULT_API_KEY);
     }
@@ -519,8 +544,175 @@
 
     renderAll();
     renderHistoryList();
-    // 页面加载后自动从仓库同目录读取最新产品库 Excel
+    // 页面加载后自动从仓库同目录读取最新产品库 Excel 和报价档案
     autoLoadRemoteCatalog();
+    syncFromGitHub(true);
+  }
+
+  // ================= GitHub 仓库档案读写 =================
+  function getGitHubArchiveConfig() {
+    const rawRepo = (document.getElementById('ghRepo')?.value || localStorage.getItem('ulink_gh_repo') || DEFAULT_GH_REPO).trim();
+    const parts = rawRepo.split('/').filter(Boolean);
+    const owner = parts[0] || 'xiuyusi001-ship-it';
+    const repo = parts[1] || 'Ulink-Quotation';
+
+    const rawBf = (document.getElementById('ghBranchFile')?.value || `${localStorage.getItem('ulink_gh_branch') || DEFAULT_GH_BRANCH}:${localStorage.getItem('ulink_gh_file') || DEFAULT_GH_FILE}`).trim();
+    const colonIdx = rawBf.indexOf(':');
+    const branch = colonIdx > 0 ? rawBf.slice(0, colonIdx).trim() : DEFAULT_GH_BRANCH;
+    const path = colonIdx > 0 ? rawBf.slice(colonIdx + 1).trim() : (rawBf || DEFAULT_GH_FILE);
+
+    const token = (document.getElementById('ghToken')?.value || localStorage.getItem('ulink_gh_token') || '').trim();
+    return { owner, repo, branch: branch || DEFAULT_GH_BRANCH, path: path || DEFAULT_GH_FILE, token };
+  }
+
+  function setGhSyncStatus(text, isError = false) {
+    const el = document.getElementById('ghSyncStatus');
+    if (!el) return;
+    el.innerText = text;
+    el.style.color = isError ? '#f87171' : '#4ade80';
+  }
+
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    bytes.forEach(b => { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  }
+
+  function base64ToUtf8(b64) {
+    const bin = atob(b64.replace(/\n/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function fetchRemoteArchiveWithSha(cfg) {
+    const headers = { Accept: 'application/vnd.github+json' };
+    if (cfg.token) headers.Authorization = `Bearer ${cfg.token}`;
+
+    // 优先通过 GitHub Contents API 获取最新内容与 sha
+    const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`;
+    const res = await fetch(apiUrl, { headers });
+    if (res.status === 404) {
+      return { list: [], sha: null };
+    }
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const decoded = data.content ? base64ToUtf8(data.content) : '[]';
+    const parsed = JSON.parse(decoded);
+    return { list: Array.isArray(parsed) ? parsed : [], sha: data.sha || null };
+  }
+
+  function mergeArchiveLists(localList, remoteList) {
+    const map = new Map();
+    const putItem = (item) => {
+      if (!item || !item.quoteNo) return;
+      const key = String(item.quoteNo).trim();
+      const prev = map.get(key);
+      if (!prev) {
+        map.set(key, item);
+      } else {
+        const tPrev = Date.parse(prev.updatedAt || '') || 0;
+        const tCurr = Date.parse(item.updatedAt || '') || 0;
+        if (tCurr >= tPrev) map.set(key, item);
+      }
+    };
+    (remoteList || []).forEach(putItem);
+    (localList || []).forEach(putItem);
+    return Array.from(map.values())
+      .sort((a, b) => (Date.parse(b.updatedAt || '') || 0) - (Date.parse(a.updatedAt || '') || 0))
+      .slice(0, 300);
+  }
+
+  async function syncFromGitHub(silent = true) {
+    const cfg = getGitHubArchiveConfig();
+    try {
+      const { list: remoteList } = await fetchRemoteArchiveWithSha(cfg);
+      const merged = mergeArchiveLists(getArchiveList(), remoteList);
+      localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(merged));
+      renderHistoryList();
+      setGhSyncStatus(`已同步仓库（${merged.length} 条）`);
+      if (!silent) alert(`已从 GitHub 同步 ${merged.length} 条报价记录！`);
+    } catch (err) {
+      // 无 Token 或 API 限流时尝试读取 raw 文件只读兜底
+      try {
+        const rawUrl = `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/${cfg.branch}/${cfg.path}?t=${Date.now()}`;
+        const r = await fetch(rawUrl);
+        if (r.ok) {
+          const remoteList = await r.json();
+          if (Array.isArray(remoteList)) {
+            const merged = mergeArchiveLists(getArchiveList(), remoteList);
+            localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(merged));
+            renderHistoryList();
+            setGhSyncStatus(`已只读拉取 ${merged.length} 条`);
+            if (!silent) alert(`已拉取 ${merged.length} 条报价记录！`);
+            return;
+          }
+        }
+      } catch (_) {}
+      setGhSyncStatus(`同步提示：${err.message}`, true);
+      if (!silent) alert(`拉取 GitHub 档案失败：${err.message}`);
+    }
+  }
+
+  async function syncToGitHub(silent = true) {
+    const cfg = getGitHubArchiveConfig();
+    if (!cfg.token) {
+      setGhSyncStatus('未配置 GitHub Token，仅存本地', true);
+      if (!silent) {
+        alert('请先在“⚙️ API 设置”中填写 GitHub Token！');
+        toggleDrawer('settingsPanel');
+      }
+      return;
+    }
+
+    try {
+      setGhSyncStatus('正在写入 GitHub...');
+      const current = await fetchRemoteArchiveWithSha(cfg);
+      const merged = mergeArchiveLists(getArchiveList(), current.list);
+      localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(merged));
+
+      const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}`;
+      const body = {
+        message: `Sync quotes archive (${new Date().toISOString()})`,
+        content: utf8ToBase64(JSON.stringify(merged, null, 2)),
+        branch: cfg.branch
+      };
+      if (current.sha) body.sha = current.sha;
+
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${cfg.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        let detail = '';
+        try { const errJson = await res.json(); detail = errJson.message || ''; } catch (_) {}
+        throw new Error(`HTTP ${res.status} ${detail}`);
+      }
+
+      setGhSyncStatus(`已写入仓库（${merged.length} 条）`);
+      if (!silent) alert(`已成功同步 ${merged.length} 条报价到 GitHub！`);
+    } catch (err) {
+      setGhSyncStatus(`写入失败：${err.message}`, true);
+      if (!silent) alert(`写入 GitHub 失败：${err.message}`);
+    }
+  }
+
+  function scheduleGitHubSync() {
+    const cfg = getGitHubArchiveConfig();
+    if (!cfg.token) return;
+    if (ghSyncTimer) clearTimeout(ghSyncTimer);
+    ghSyncTimer = setTimeout(() => {
+      syncToGitHub(true);
+    }, 1200);
   }
 
   // ================= 自动从仓库同目录读取 ULINK产品库.xlsx =================
@@ -594,6 +786,7 @@
 
     renderAll();
     renderHistoryList();
+    scheduleGitHubSync();
   }
 
   function getArchiveList() {
@@ -705,6 +898,7 @@
     const next = getArchiveList().filter(x => x.quoteNo !== qNo);
     localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(next));
     renderHistoryList();
+    scheduleGitHubSync();
   }
 
   // ================= 一键折扣（跳过酒店/门票/机票） =================
@@ -744,8 +938,24 @@
     localStorage.setItem('ulink_api_endpoint', document.getElementById('apiEndpoint').value.trim());
     localStorage.setItem('ulink_api_model', document.getElementById('apiModel').value.trim());
     localStorage.setItem('ulink_api_key', document.getElementById('apiKey').value.trim());
+
+    const rawRepo = (document.getElementById('ghRepo').value || DEFAULT_GH_REPO).trim();
+    const rawBf = (document.getElementById('ghBranchFile').value || `${DEFAULT_GH_BRANCH}:${DEFAULT_GH_FILE}`).trim();
+    const colonIdx = rawBf.indexOf(':');
+    const branch = colonIdx > 0 ? rawBf.slice(0, colonIdx).trim() : DEFAULT_GH_BRANCH;
+    const file = colonIdx > 0 ? rawBf.slice(colonIdx + 1).trim() : (rawBf || DEFAULT_GH_FILE);
+    const token = document.getElementById('ghToken').value.trim();
+
+    localStorage.setItem('ulink_gh_repo', rawRepo);
+    localStorage.setItem('ulink_gh_branch', branch || DEFAULT_GH_BRANCH);
+    localStorage.setItem('ulink_gh_file', file || DEFAULT_GH_FILE);
+    localStorage.setItem('ulink_gh_token', token);
+
     toggleDrawer('settingsPanel');
-    alert('API 配置已保存！');
+    alert('配置已保存！');
+    if (token) {
+      syncFromGitHub(true);
+    }
   }
 
   // ================= AI 智能解析规则 =================
@@ -1018,6 +1228,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     const key = `ulink_quote_draft_v12_${currentEmployee}`;
     localStorage.setItem(key, JSON.stringify(payload));
     saveToArchive(payload);
+    scheduleGitHubSync();
   }
 
   function renderAll() {
@@ -1297,6 +1508,7 @@ ${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
     el.style.display = nextDisplay;
     if (id === 'historyPanel' && nextDisplay === 'block') {
       renderHistoryList();
+      syncFromGitHub(true);
     }
   }
 
