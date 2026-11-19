@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULINK 报价单生成器</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --border-color: #000;
+    --header-bg: #fff;
+    --text-main: #000;
+    --theme-green: #009944;
+    --theme-purple: #8b008b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, "Helvetica Neue", Helvetica, "Microsoft YaHei", sans-serif;
+    background-color: #e5e5e5;
+    color: var(--text-main);
+    font-size: 11px; 
+    line-height: 1.3;
+  }
+
+  .toolbar {
+    background: #222; color: #fff; padding: 8px 16px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  }
+  .toolbar-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .toolbar-divider { width: 1px; height: 16px; background: #555; margin: 0 4px; }
+
+  .btn {
+    padding: 4px 10px; border: 1px solid transparent; border-radius: 3px;
+    cursor: pointer; font-size: 12px; font-weight: bold;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--theme-green); color: #fff; }
+  .btn-blue { background: #444; color: #fff; }
+  .btn-amber { background: #b45309; color: #fff; }
+  .btn-purple { background: #4c1d95; color: #fff; }
+  .btn-teal { background: #0f766e; color: #fff; }
+  .btn-gray { background: #555; color: #fff; }
+
+  .emp-select {
+    padding: 4px 6px; border-radius: 3px; border: 1px solid #555;
+    background: #333; color: #fff; font-size: 12px; outline: none;
+  }
+  .badge-count {
+    background: #333; color: #ccc; padding: 3px 8px;
+    border-radius: 10px; font-size: 11px; border: 1px solid #555;
+  }
+
+  .drawer-panel {
+    background: #333; color: #fff; padding: 12px 20px;
+    border-bottom: 2px solid #555; display: none; font-size: 12px;
+  }
+  .import-box { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; margin-top: 8px; }
+  .import-card { background: #222; padding: 10px; border-radius: 4px; border: 1px solid #555; }
+
+  /* 快捷规则标签样式 */
+  .quick-rules-bar {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    margin: 6px 0 8px 0;
+  }
+  .rule-chip {
+    background: #27272a; color: #fde68a; border: 1px solid #7c3aed;
+    padding: 3px 8px; border-radius: 12px; font-size: 11px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .rule-chip:hover {
+    background: #4c1d95; color: #fff;
+  }
+
+  /* 历史报价检索列表 */
+  .history-list {
+    margin-top: 10px; max-height: 220px; overflow-y: auto;
+    background: #222; border: 1px solid #555; border-radius: 4px;
+  }
+  .history-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 12px; border-bottom: 1px solid #3a3a3a; font-size: 12px;
+  }
+  .history-item:hover { background: #2c2c2c; }
+
+  .page {
+    width: 210mm; min-height: 297mm; margin: 15px auto;
+    background: #fff; padding: 3mm 12mm 10mm 12mm; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative;
+  }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end; 
+    padding-bottom: 6px; border-bottom: 2px solid #000; margin-bottom: 10px;
+    margin-top: -4px; 
+  }
+  .header-left { display: flex; align-items: flex-end; gap: 20px; }
+  
+  .logo-text {
+    font-size: 56px; font-weight: 900; color: var(--theme-green);
+    letter-spacing: 0px; line-height: 0.6; margin-bottom: -2px; margin-left: -5px; 
+    font-family: "Arial Black", Impact, Arial, sans-serif;
+  }
+
+  .quote-title { font-size: 16px; font-weight: bold; color: #000; display: flex; align-items: center; margin-bottom: 4px;}
+  .quote-title span { margin-left: 8px; font-size: 18px;}
+
+  .header-right { text-align: left; font-size: 10px; line-height: 1.4; font-weight: bold; color: #000; margin-bottom: 2px;}
+
+  .meta-table { width: 100%; margin-bottom: 10px; border-collapse: collapse; font-size: 11px; }
+  .meta-table th { text-align: left; color: #333; font-weight: normal; padding-bottom: 2px; }
+  .meta-table td { font-weight: bold; vertical-align: top; color: #000; }
+
+  .section-title { color: var(--theme-purple); font-weight: bold; font-size: 12px; margin: 10px 0 4px 0; }
+
+  .itinerary-table, .cost-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+  .itinerary-table th, .itinerary-table td, .cost-table th, .cost-table td { 
+    border: 1px solid var(--border-color); padding: 4px 5px; text-align: center; word-wrap: break-word;
+  }
+  .itinerary-table th, .cost-table th { background-color: var(--header-bg); font-weight: bold; color: #000; }
+  .itinerary-table td.text-left, .cost-table td.text-left { text-align: left; }
+
+  .op-col { width: 45px !important; white-space: nowrap; padding: 4px 0 !important; }
+  .draggable-row { cursor: grab; }
+
+  /* 配色区分 */
+  .row-section td { background-color: #111 !important; color: #fff !important; font-weight: bold; text-align: left; padding: 6px 8px; font-size: 11.5px; border-color: #111 !important; }
+  .row-product td { background-color: #fff; color: #000; }
+  .row-note td { background-color: #f1f5f9 !important; color: #475569 !important; font-style: italic; text-align: left; border-color: #cbd5e1 !important; }
+  .row-subtotal td { background-color: #fff; text-align: right; font-weight: bold; font-size: 11px; color: #000; padding: 3px 8px; border-top: none; }
+
+  .row-section input.editable { color: #fff !important; }
+  .row-section input.editable::placeholder { color: #888 !important; }
+  .row-section input.editable:hover, .row-section input.editable:focus { background: #333 !important; border-color: #666 !important; color: #fff !important; }
+
+  .row-note input.editable { color: #475569 !important; }
+  .row-note input.editable::placeholder { color: #94a3b8 !important; }
+  .row-note input.editable:hover, .row-note input.editable:focus { background: #e2e8f0 !important; border-color: #94a3b8 !important; color: #475569 !important; }
+
+  .row-product input.editable { color: #000 !important; }
+
+  input.editable {
+    border: 1px dashed transparent; background: transparent;
+    font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; width: 100%; padding: 1px 2px;
+    user-select: text; -webkit-user-select: text; cursor: text;
+  }
+  input.editable:focus {
+    outline: none;
+    border: 1px dashed #666;
+    background: rgba(255, 255, 200, 0.25);
+  }
+  .num-input { text-align: center; }
+
+  .grand-total-box { margin-top: 10px; text-align: right; font-size: 14px; font-weight: bold; padding: 5px 10px; color: #000; }
+
+  .notice-footer { margin-top: 15px; font-size: 10.5px; color: #d32f2f; line-height: 1.4; font-weight: normal; }
+  
+  .desc-block { margin-top: 10px; font-size: 11px; }
+  .desc-block h4 { font-weight: bold; margin-bottom: 2px; color: #333; }
+  .desc-input { width: 100%; border: 1px solid #ddd; padding: 3px; min-height: 25px; resize: vertical; font-family: inherit; font-size: 11px;}
+
+  .page-break { page-break-before: always; }
+  .footer-block { margin-top: 40px; font-size: 11px; line-height: 1.5; font-weight: bold;}
+  .footer-block .signature { margin-top: 30px; }
+
+  .edit-only { display: inline-flex; align-items: center; gap: 4px; }
+  .mini-btn { background: #666; color: #fff; border: none; padding: 2px 6px; font-size: 10px; border-radius: 2px; cursor: pointer; }
+  .mini-btn:hover { background: #444; }
+  
+  .mini-btn.del { background: transparent !important; color: #999 !important; font-size: 16px; font-weight: bold; padding: 0 6px; line-height: 1; border: none !important; }
+  .row-section .mini-btn.del { color: #ccc !important; }
+  .mini-btn.del:hover { color: #d32f2f !important; }
+
+  .mini-btn.blue { background: #1976d2; }
+  .mini-btn.purple { background: #7b1fa2; }
+  .mini-btn.amber { background: #f57c00; }
+  .mini-btn.green { background: #388e3c; }
+
+  .bottom-action-bar { display: flex; gap: 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--border-color); border-top: none; background: #f9f9f9; }
+
+  .custom-dropdown {
+    position: absolute; background: #fff; border: 1px solid #999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;
+    max-height: 200px; overflow-y: auto; display: none; width: 380px;
+  }
+  .dropdown-item { display: flex; justify-content: space-between; padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 11px; }
+  .dropdown-item:hover { background-color: #f0f0f0; }
+  .dropdown-item .item-name { flex: 1; text-align: left; color: #000; }
+
+  /* AI 解析加载遮罩层 */
+  #aiLoadingOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); z-index: 9999;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    color: #fff; font-size: 18px; font-weight: bold;
+  }
+  .spinner {
+    border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #009944;
+    border-radius: 50%; width: 50px; height: 50px;
+    animation: spin 1s linear infinite; margin-bottom: 20px;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar, .drawer-panel, .bottom-action-bar, button, .custom-dropdown, .print-hide, #aiLoadingOverlay { display: none !important; }
+    .page { margin: 0; padding: 3mm 12mm 10mm 12mm; box-shadow: none; width: 100%; min-height: auto; }
+    input.editable, .desc-input { border: none !important; background: transparent !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    
+    .row-section input.editable { color: #fff !important; }
+    .row-note input.editable { color: #475569 !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- AI 思考遮罩层 -->
+  <div id="aiLoadingOverlay">
+    <div class="spinner"></div>
+    <div>DeepSeek AI 正在智能归类报价，请稍候...</div>
+    <div style="font-size:12px; color:#aaa; margin-top:10px; font-weight:normal;">(正在比对产品库、分析航班与导游规则并计算价格)</div>
+  </div>
+
+  <input type="file" id="catalogFileInput" accept=".xlsx,.xls,.csv,.txt,.json" style="display:none" onchange="handleCatalogFileUpload(event)">
+  <div id="productDropdown" class="custom-dropdown"></div>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <strong style="color:var(--theme-green); font-size:13px;">ULINK 报价单</strong>
+      <select class="emp-select" id="employeeSelect" onchange="switchEmployee(this.value)"></select>
+      <button class="btn btn-primary" onclick="createNewQuote()">✨ 新建报价</button>
+      <button class="btn btn-blue" onclick="toggleDrawer('historyPanel')">🔍 查报价</button>
+      <div class="toolbar-divider"></div>
+      <button class="btn btn-amber" onclick="toggleDrawer('importPanel')">📂 产品库</button>
+      <span class="badge-count" id="catalogCountBadge">已加载 0 个产品</span>
+      <button class="btn btn-purple" onclick="toggleDrawer('aiPanel')">🧠 AI 解析</button>
+      <button class="btn btn-gray" onclick="toggleDrawer('settingsPanel')">⚙️ API 设置</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="btn btn-teal" onclick="applyBatchDiscount()">🏷️ 一键折扣</button>
+      <button class="btn btn-primary" onclick="downloadPDF()">📥 导出 PDF</button>
+      <button class="btn btn-blue" onclick="triggerPrint()">🖨️ 打印预览</button>
+    </div>
+  </div>
+
+  <!-- 历史报价检索面板 -->
+  <div class="drawer-panel" id="historyPanel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <strong>历史报价档案库（保存在当前浏览器本地存储，输入报价编号或客户名可快速查找）</strong>
+      <button class="btn btn-gray" onclick="toggleDrawer('historyPanel')">收起</button>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <input type="text" id="historySearchInput" oninput="renderHistoryList()" placeholder="输入报价单编号（如 P90001）、客户或顾问名称..." style="flex:1; background:#111; color:#fff; border:1px solid #555; padding:5px 8px; border-radius:3px; font-size:12px;">
+      <button class="btn btn-gray" onclick="document.getElementById('historySearchInput').value=''; renderHistoryList()">清空</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <div class="drawer-panel" id="importPanel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <strong>导入产品库</strong>
+      <button class="btn btn-gray" onclick="toggleDrawer('importPanel')">收起</button>
+    </div>
+    <div class="import-box">
+      <div class="import-card">
+        <div style="margin-bottom:6px;">选择 Excel</div>
+        <button class="btn btn-amber" onclick="document.getElementById('catalogFileInput').value=''; document.getElementById('catalogFileInput').click()">📁 选择文件</button>
+      </div>
+      <div class="import-card">
+        <div style="margin-bottom:4px;">粘贴数据</div>
+        <textarea id="txtCatalogInput" style="width:100%; height:50px; background:#111; color:#fff; border:1px solid #555; padding:4px; font-size:11px;" placeholder="分类, 编码, 名称, 单价"></textarea>
+        <button class="btn btn-primary" style="margin-top:4px;" onclick="importFromPastedTxt()">确定导入</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-panel" id="settingsPanel">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+      <div><label>API 地址</label><input type="text" id="apiEndpoint" value="https://api.deepseek.com/chat/completions" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+      <div><label>Model</label><input type="text" id="apiModel" value="deepseek-chat" style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+      <div><label>API Key</label><input type="password" id="apiKey" placeholder="sk-..." style="width:100%; background:#111; color:#fff; border:1px solid #555; padding:2px;"></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:6px;" onclick="saveApiSettings()">保存设置</button>
+  </div>
+
+  <div class="drawer-panel" id="aiPanel">
+    <div style="margin-bottom: 6px; color:#ccc; font-weight:bold;">
+      AI 将严格按照您指定的车型、导游规则、导游小费及航班机场进行解析。缺项自动忽略，绝不乱造产品。
+    </div>
+
+    <!-- 必选车型栏 -->
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; background:#222; padding:8px 10px; border-radius:4px; border:1px solid #555;">
+      <label for="vehicleSelect" style="color:#fbbf24; font-weight:bold;">🚐 导入行程车型（必选）：</label>
+      <select id="vehicleSelect" style="background:#111; color:#fff; border:1px solid #7c3aed; padding:4px 8px; border-radius:3px; font-size:12px; min-width:180px;">
+        <option value="">-- 请先选择车型 --</option>
+        <option value="舒适5座车">舒适5座车</option>
+        <option value="商务7座车">商务7座车</option>
+        <option value="豪华7座车">豪华7座车</option>
+        <option value="商务12座车">商务12座车</option>
+        <option value="商务15座车">商务15座车</option>
+        <option value="27座中巴">27座中巴</option>
+        <option value="35座中巴">35座中巴</option>
+        <option value="44座中巴">44座中巴</option>
+      </select>
+      <span style="color:#aaa; font-size:11px;">导入解析前必须选择车辆，报价用车将按该车型匹配</span>
+    </div>
+
+    <textarea id="aiInputText" style="width:100%; height:100px; background:#111; color:#fff; border:1px solid #555; padding:6px; font-size:12px;" placeholder="在此粘贴行程文本，例如：
+2.10 伊斯坦布尔接机（航班TK123），安排接机
+2.11 伊斯坦布尔市区包车一日游，中文导游
+2.12 伊斯坦布尔飞卡帕（航班PC123），接机，下午卡帕红线包车，晚上热气球"></textarea>
+    
+    <!-- 快捷添加规则标签（无手动保存按钮） -->
+    <div style="margin-top: 8px; color:#ddd; font-size:11px; font-weight:bold;">
+      ⚡ 快捷添加规则（点击追加到下方规则框）：
+    </div>
+    <div class="quick-rules-bar" id="quickRulesBar"></div>
+
+    <!-- 临时附加规则 -->
+    <div style="margin-bottom: 4px; color:#aaa; font-size:11px;">
+      💡 附加规则（将一并发送给 AI）：
+    </div>
+    <textarea id="customRules" style="width:100%; height:44px; background:#222; color:#fbbf24; border:1px dashed #7c3aed; padding:6px; font-size:12px;" placeholder="点击上方快捷标签或直接输入规则..."></textarea>
+
+    <div style="margin-top:8px;">
+      <button class="btn btn-teal" id="aiParseBtn" onclick="runCostParseFromText()" style="background:#7c3aed; padding:6px 15px; font-size:13px;">🚀 调用 DeepSeek AI 深度解析</button>
+    </div>
+  </div>
+
+  <div class="page" id="pdfPage">
+    <div class="header">
+      <div class="header-left">
+        <div class="logo-text">ULINK</div>
+        <div class="quote-title">报价单# <span id="quoteNoSpan">P90001</span></div>
+        <input type="hidden" id="quoteNo" value="P90001" oninput="syncQuoteNo()">
+      </div>
+      <div class="header-right">
+        <div>ULINK TURIZM TICARET LIMITED SIRKETI</div>
+        <div>karagumruk mah kaleboyu cad no:21/2,fatih,istanbul,TURKEY</div>
+        <div>Fatih V.D:8870576735 | Tursab No: 10242</div>
+        <div>help@ulinktravel.com | T:+908502418028 | www.ulinktravel.com</div>
+      </div>
+    </div>
+
+    <table class="meta-table">
+      <tr>
+        <th style="width: 28%;">报价顾问</th>
+        <th style="width: 16%;">参考订单</th>
+        <th style="width: 24%;">版本</th>
+        <th style="width: 12%;">人数</th>
+        <th style="width: 20%;">客户</th>
+      </tr>
+      <tr>
+        <td><input class="editable" id="advisorName" value="" onchange="saveState()"></td>
+        <td><input class="editable" id="refOrder" value="" onchange="saveState()"></td>
+        <td><input class="editable" id="versionTime" value="" onchange="saveState()"></td>
+        <td><input class="editable" id="paxCount" value="" onchange="saveState()"></td>
+        <td><input class="editable" id="clientName" value="" onchange="saveState()"></td>
+      </tr>
+    </table>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+      <div class="section-title" style="margin:0;">行程安排</div>
+      <button class="edit-only mini-btn blue" onclick="addItineraryRow()">+ 添加行程</button>
+    </div>
+    <table class="itinerary-table">
+      <thead>
+        <tr>
+          <th style="width: 15%;">日期</th>
+          <th style="width: 37%;">行程</th>
+          <th style="width: 12%;">景点</th>
+          <th style="width: 8%;">用餐</th>
+          <th style="width: 8%;">门票</th>
+          <th style="width: 8%;">导游</th>
+          <th style="width: 9%;">入住</th>
+          <th class="op-col print-hide">操作</th>
+        </tr>
+      </thead>
+      <tbody id="itineraryBody"></tbody>
+    </table>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; margin-bottom:4px;">
+      <div class="section-title" style="margin:0;">费用分项明细</div>
+      <button class="edit-only mini-btn green" onclick="toggleDiscount()">🏷️ 显示/隐藏折扣</button>
+    </div>
+    
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th id="thDesc" style="text-align: left;">明细</th>
+          <th id="thQty" style="width: 12%; text-align: center;">数量</th>
+          <th id="thPrice" style="width: 14%; text-align: center;">单价</th>
+          <th id="thDiscount" style="width: 10%; text-align: center; display: none;">折扣(%)</th>
+          <th id="thAmount" style="width: 15%; text-align: center;">金额</th>
+          <th class="op-col print-hide">操作</th>
+        </tr>
+      </thead>
+      <tbody id="costBody"></tbody>
+    </table>
+
+    <div class="bottom-action-bar edit-only">
+      <button class="mini-btn blue" onclick="addCostRow('product')">添加产品</button>
+      <button class="mini-btn purple" onclick="addCostRow('section')">添加小节</button>
+      <button class="mini-btn amber" onclick="addCostRow('note')">添加备注</button>
+      <span style="color:#666; font-size:10px; margin-left:8px;">提示：在输入框内可直接左右拖选文字并按 Delete 删除重选；拖动整行请在行边缘或非输入框处拖动</span>
+    </div>
+
+    <div class="grand-total-box">总计：¥ <span id="grandTotal">0.0</span></div>
+
+    <div class="notice-footer">
+      *注:请您仔细核对报价单中的所有项目和数量是否准确，如果您报价单中遗漏了某些产品或服务或数量不准确，请及时通知我们进行调整。任何报价单中未列出的额外产品或服务可能会产生附加费用，感谢您的理解与合作! 本报价有效期为10天，过期后的产品或服务价格变化将会由您承担!
+    </div>
+
+    <div class="desc-block">
+      <div style="margin-bottom: 6px;"><h4>酒店说明:</h4><textarea class="desc-input" onchange="saveState()" id="descHotel"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>用车说明:</h4><textarea class="desc-input" onchange="saveState()" id="descCar"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>导游说明:</h4><textarea class="desc-input" onchange="saveState()" id="descGuide"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>门票说明:</h4><textarea class="desc-input" onchange="saveState()" id="descTicket"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>机票说明:</h4><textarea class="desc-input" onchange="saveState()" id="descFlight"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>保险说明:</h4><textarea class="desc-input" onchange="saveState()" id="descInsurance"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>用餐说明:</h4><textarea class="desc-input" onchange="saveState()" id="descMeal"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>购物说明:</h4><textarea class="desc-input" onchange="saveState()" id="descShop"></textarea></div>
+    </div>
+    
+    <div class="page-break"></div>
+    <div class="desc-block" style="margin-top: 0;">
+      <div style="margin-bottom: 6px;"><h4>注意事项:</h4><textarea class="desc-input" onchange="saveState()" id="descNotice"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>补充说明:</h4><textarea class="desc-input" onchange="saveState()" id="descExtra"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>退改说明:</h4><textarea class="desc-input" onchange="saveState()" id="descRefund"></textarea></div>
+      <div style="margin-bottom: 6px;"><h4>其他:</h4><textarea class="desc-input" onchange="saveState()" id="descOther"></textarea></div>
+    </div>
+
+    <div class="footer-block">
+      <div>Ulink Turizm Ve Dis Ticaret Limited Sirketi</div>
+      <div>Karagumruk mah kaleboyu cad no21/2, fatih, istanbul</div>
+      <div>Vat:8870576735 | Tursab No:10242</div>
+      <div class="signature">负责人: <span id="footerAdvisor"></span></div>
+      <div>日期: <span id="footerDate"></span></div>
+    </div>
+  </div>
+
+<script>
+  const EMPLOYEES = {
+    '小张': { code: '0', email: 'zhang@ulinktravel.com' },
+    '爱丝': { code: '1', email: 'aisi@ulinktravel.com' },
+    '小再': { code: '2', email: 'zai@ulinktravel.com' },
+    '小买': { code: '3', email: 'mai@ulinktravel.com' },
+    '小新': { code: '4', email: 'xin@ulinktravel.com' },
+    '小豆': { code: '5', email: 'dou@ulinktravel.com' },
+    '小高': { code: '6', email: 'gao@ulinktravel.com' },
+    '小菲': { code: '7', email: 'fei@ulinktravel.com' },
+    '小攀': { code: '8', email: 'pan@ulinktravel.com' },
+    '小宋': { code: '9', email: 'song@ulinktravel.com' }
+  };
+
+  const QUICK_RULES = [
+    "所有行程不包餐",
+    "导游按全天算",
+    "全程导游按规定区分市内与跨城",
+    "含导游每人每天小费"
+  ];
+  
+  let currentEmployee = '小宋';
+  let productCatalog = [];
+  let itineraryData = [];
+  let costRows = [];
+  let showDiscount = false;
+  let activeInputIdx = null;
+
+  function init() {
+    const empSelect = document.getElementById('employeeSelect');
+    empSelect.innerHTML = '';
+    Object.keys(EMPLOYEES).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.innerText = '员工：' + name;
+      empSelect.appendChild(opt);
+    });
+
+    currentEmployee = localStorage.getItem('ulink_current_employee') || '小宋';
+    if (!EMPLOYEES[currentEmployee]) currentEmployee = '小宋';
+    empSelect.value = currentEmployee;
+
+    document.getElementById('apiEndpoint').value = localStorage.getItem('ulink_api_endpoint') || 'https://api.deepseek.com/chat/completions';
+    document.getElementById('apiModel').value = localStorage.getItem('ulink_api_model') || 'deepseek-chat';
+    document.getElementById('apiKey').value = localStorage.getItem('ulink_api_key') || '';
+
+    const savedCat = localStorage.getItem('ulink_product_catalog_v12');
+    if (savedCat) { try { productCatalog = JSON.parse(savedCat); } catch(e){} }
+    document.getElementById('catalogCountBadge').innerText = `已加载 ${productCatalog.length} 个产品`;
+
+    renderQuickRules();
+    loadDraftForEmployee(currentEmployee);
+    document.getElementById('thDiscount').style.display = showDiscount ? 'table-cell' : 'none';
+    
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('productDropdown');
+      if (dropdown.style.display === 'block' && !e.target.closest('#productDropdown') && !e.target.classList.contains('product-input')) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    renderAll();
+    renderHistoryList();
+  }
+
+  // ================= 快捷添加规则 =================
+  function renderQuickRules() {
+    const bar = document.getElementById('quickRulesBar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    QUICK_RULES.forEach((ruleText) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rule-chip';
+      btn.innerText = '+ ' + ruleText;
+      btn.onclick = () => {
+        const ta = document.getElementById('customRules');
+        const current = ta.value.trim();
+        if (!current) ta.value = ruleText;
+        else if (!current.includes(ruleText)) ta.value = current + '；' + ruleText;
+        ta.focus();
+      };
+      bar.appendChild(btn);
+    });
+  }
+
+  // ================= 新建报价与历史报价档案库 =================
+  function generateNextQuoteNo(empName) {
+    const empCode = (EMPLOYEES[empName] && EMPLOYEES[empName].code) || '9';
+    const seqKey = `ulink_seq_${empCode}`;
+    let lastNoNum = parseInt(localStorage.getItem(seqKey) || '0', 10) + 1;
+    localStorage.setItem(seqKey, lastNoNum);
+    return `P${empCode}${String(lastNoNum).padStart(4, '0')}`;
+  }
+
+  function createNewQuote() {
+    if (!confirm('确定要创建新报价吗？当前页面内容会自动存入历史档案，然后生成全新的空白报价单和编号。')) return;
+    saveState();
+
+    const newNo = generateNextQuoteNo(currentEmployee);
+    itineraryData = [];
+    costRows = [];
+    showDiscount = false;
+    document.getElementById('thDiscount').style.display = 'none';
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
+
+    document.getElementById('quoteNo').value = newNo;
+    document.getElementById('quoteNoSpan').innerText = newNo;
+    document.getElementById('refOrder').value = newNo;
+    document.getElementById('advisorName').value = currentEmployee;
+    document.getElementById('paxCount').value = '';
+    document.getElementById('clientName').value = '';
+
+    const now = new Date();
+    document.getElementById('versionTime').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    renderAll();
+    renderHistoryList();
+  }
+
+  function getArchiveList() {
+    try {
+      const raw = localStorage.getItem('ulink_quote_archive_v1');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveToArchive(payload) {
+    const qNo = (payload.quoteNo || '').trim();
+    if (!qNo) return;
+
+    let total = 0;
+    (payload.costRows || []).forEach(r => {
+      if (r.type === 'product') {
+        const qty = parseFloat(r.qty) || 0;
+        const price = parseFloat(r.price) || 0;
+        const disc = payload.showDiscount ? ((parseFloat(r.discount) || 100) / 100) : 1;
+        total += qty * price * disc;
+      }
+    });
+
+    const record = {
+      ...payload,
+      quoteNo: qNo,
+      updatedAt: getFormatTime(),
+      totalAmount: total.toFixed(1)
+    };
+
+    const list = getArchiveList().filter(item => item.quoteNo !== qNo);
+    list.unshift(record);
+    localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(list.slice(0, 300)));
+  }
+
+  function renderHistoryList() {
+    const container = document.getElementById('historyList');
+    if (!container) return;
+    const kw = (document.getElementById('historySearchInput')?.value || '').trim().toLowerCase();
+    const list = getArchiveList().filter(item => {
+      if (!kw) return true;
+      return (
+        (item.quoteNo && item.quoteNo.toLowerCase().includes(kw)) ||
+        (item.clientName && item.clientName.toLowerCase().includes(kw)) ||
+        (item.advisorName && item.advisorName.toLowerCase().includes(kw))
+      );
+    });
+
+    if (list.length === 0) {
+      container.innerHTML = '<div style="padding:12px; color:#999; text-align:center;">暂无匹配的报价记录</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = `
+        <div>
+          <strong style="color:#4ade80;">${item.quoteNo}</strong>
+          <span style="margin-left:10px; color:#fff;">客户：${item.clientName || '未填'}</span>
+          <span style="margin-left:10px; color:#ccc;">顾问：${item.advisorName || '-'}</span>
+          <span style="margin-left:10px; color:#fbbf24;">总计：¥${item.totalAmount || '0.0'}</span>
+          <span style="margin-left:10px; color:#888; font-size:11px;">${item.updatedAt || ''}</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-primary" style="padding:2px 8px; font-size:11px;" onclick="loadArchivedQuote('${item.quoteNo.replace(/'/g, "\\'")}')">打开</button>
+          <button class="btn btn-gray" style="padding:2px 8px; font-size:11px;" onclick="deleteArchivedQuote('${item.quoteNo.replace(/'/g, "\\'")}')">删除</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function loadArchivedQuote(qNo) {
+    const item = getArchiveList().find(x => x.quoteNo === qNo);
+    if (!item) return;
+
+    itineraryData = Array.isArray(item.itinerary) ? item.itinerary : [];
+    costRows = Array.isArray(item.costRows) ? item.costRows : [];
+    showDiscount = !!item.showDiscount;
+    document.getElementById('thDiscount').style.display = showDiscount ? 'table-cell' : 'none';
+
+    document.getElementById('quoteNo').value = item.quoteNo;
+    document.getElementById('quoteNoSpan').innerText = item.quoteNo;
+    document.getElementById('refOrder').value = item.refOrder || item.quoteNo;
+    document.getElementById('advisorName').value = item.advisorName || currentEmployee;
+    document.getElementById('versionTime').value = item.versionTime || document.getElementById('versionTime').value;
+    document.getElementById('paxCount').value = item.paxCount || '';
+    document.getElementById('clientName').value = item.clientName || '';
+
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
+    if (item.descs) {
+      Object.keys(item.descs).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = item.descs[id];
+      });
+    }
+
+    renderAll();
+    toggleDrawer('historyPanel');
+  }
+
+  function deleteArchivedQuote(qNo) {
+    if (!confirm(`确定删除历史报价 ${qNo} 吗？`)) return;
+    const next = getArchiveList().filter(x => x.quoteNo !== qNo);
+    localStorage.setItem('ulink_quote_archive_v1', JSON.stringify(next));
+    renderHistoryList();
+  }
+
+  // ================= 一键折扣（跳过酒店/门票/机票） =================
+  function applyBatchDiscount() {
+    const input = prompt('请输入统一折扣百分比（例如输入 90 代表 9 折，输入 100 代表无折扣）：\n注：含“酒店、门票、机票”字样的项目将自动跳过，需手动修改。', '95');
+    if (input === null) return;
+    const discVal = parseFloat(input);
+    if (isNaN(discVal) || discVal <= 0 || discVal > 100) {
+      alert('请输入 1 到 100 之间的有效折扣数字！');
+      return;
+    }
+
+    const skipKeywords = ['酒店', '门票', '机票'];
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    costRows.forEach(row => {
+      if (row.type === 'product') {
+        const descStr = String(row.desc || '');
+        const isProtected = skipKeywords.some(k => descStr.includes(k));
+        if (isProtected) {
+          skippedCount++;
+        } else {
+          row.discount = discVal;
+          updatedCount++;
+        }
+      }
+    });
+
+    showDiscount = true;
+    document.getElementById('thDiscount').style.display = 'table-cell';
+    renderAll();
+    alert(`已对 ${updatedCount} 项产品应用 ${discVal}% 折扣；自动跳过 ${skippedCount} 项含“酒店/门票/机票”的项目。`);
+  }
+
+  function saveApiSettings() {
+    localStorage.setItem('ulink_api_endpoint', document.getElementById('apiEndpoint').value.trim());
+    localStorage.setItem('ulink_api_model', document.getElementById('apiModel').value.trim());
+    localStorage.setItem('ulink_api_key', document.getElementById('apiKey').value.trim());
+    toggleDrawer('settingsPanel');
+    alert('API 配置已保存！');
+  }
+
+  // ================= AI 智能解析规则 =================
+  async function runCostParseFromText() {
+    const selectedVehicle = document.getElementById('vehicleSelect').value.trim();
+    if (!selectedVehicle) {
+      alert('⚠️ 请先在上方选择车型后再导入行程解析！');
+      document.getElementById('vehicleSelect').focus();
+      return;
+    }
+
+    const text = document.getElementById('aiInputText').value.trim();
+    if (!text) { alert('请先粘贴行程文本！'); return; }
+
+    const apiKey = localStorage.getItem('ulink_api_key');
+    const apiEndpoint = localStorage.getItem('ulink_api_endpoint') || 'https://api.deepseek.com/chat/completions';
+    const apiModel = localStorage.getItem('ulink_api_model') || 'deepseek-chat';
+
+    if (!apiKey) {
+      alert('⚠️ 还没有配置 API Key！\n请先在“⚙️ API 设置”中填入您的 DeepSeek Key。');
+      toggleDrawer('settingsPanel');
+      return;
+    }
+
+    const customRules = document.getElementById('customRules').value.trim();
+    const paxVal = document.getElementById('paxCount').value.trim();
+
+    const confirmMsg = `🚀 即将调用 DeepSeek AI\n\n已指定车型：${selectedVehicle}\nAI 将严格执行车型匹配、导游规则、导游小费与航班机场识别。\n\n大模型推理约需 10~20 秒，请确认开始？`;
+    if (!confirm(confirmMsg)) return;
+
+    const overlay = document.getElementById('aiLoadingOverlay');
+    overlay.style.display = 'flex';
+
+    try {
+      const systemPrompt = `你是一个严谨的资深土耳其旅游报价员。我将提供一段行程文本和当前系统的完整产品库。
+你的核心任务是：将行程文本转化为结构化报价，且必须尽最大努力将文本中的服务与“产品库”中的名称精准匹配，绝不能凭空捏造！
+
+【指定车型（必须严格执行）】：${selectedVehicle}
+${paxVal ? `【报价单人数参考】：${paxVal} 人\n` : ''}
+【重大业务规则】
+规则 1：【按日期分小节】。识别出文本中的每一个日期（如 "2.10", "D1"），将其作为独立的 section（小节），小节名字就是该日期。每个日期小节下优先提取当天的用车产品（接送机、包车）。
+规则 2：【车型匹配】。所有用车（接送机、包车等）必须优先匹配用户选定的车型“${selectedVehicle}”对应的产品库项目；若产品库中无完全同字眼，也只能匹配该车型对应的产品，绝不能擅自换成其他车型。
+规则 3：【导游规则与导游小费】。
+- 默认在行程开始城市安排导游，一般为伊斯坦布尔。
+- 只有“伊斯坦布尔”和“卡帕多奇亚”可以安排“全程导游”。
+- 其他城市仅“伊兹密尔的以弗所”和“安塔利亚”可以安排导游。
+- 如果客人需要“全程导游”：伊斯坦布尔段匹配“市内导游”；非伊斯坦布尔段（如当天从伊斯坦布尔到卡帕多奇亚或伊兹密尔等其他城市）匹配“跨城导游”。
+- 导游每人每天有一个小费：如产品库中有导游小费相关产品，按导游天数 × 导游人数匹配；若产品库中无对应小费产品，则按规则 7 忽略不捏造。
+- 提取的所有导游及导游小费全部汇总到名为 "导游" 的 section 下。
+规则 4：【门票独立小节】。全篇所有门票汇总到 "门票" 的 section 下。
+规则 5：【玩乐独立小节】。全篇所有热气球、一日游等玩乐项目汇总到 "玩乐" 的 section 下。
+规则 6：【航班号识别机场】。
+- 如果客人提供了航班号，必须根据航班号与航线推断对应机场（不同机场价格不同）：
+  * 伊斯坦布尔：IST（伊斯坦布尔机场）或 SAW（萨比哈机场）。
+  * 卡帕多奇亚：ASR（开塞利机场）或 NAV（内夫谢希尔机场）。
+- 匹配接送机产品时，务必在产品库中寻找名称包含对应机场名称或机场代码（IST/SAW/ASR/NAV）且匹配所选车型“${selectedVehicle}”的产品。
+规则 7：【绝对死命令：缺失产品不捏造】。
+- 如果文本中提到的项目在产品库中完全找不到匹配项，你【绝对不准】凭空捏造产品行！你必须直接忽略该文本片段。
+- desc 字段必须一字不差地复制产品库中的完整名称（包含前置的中括号和编码，例如 "[BC-IST5] 伊斯坦布尔接送机"）。
+
+${customRules ? `【客户/销售员临时附加规则】\n${customRules}\n` : ''}
+
+最终输出的 JSON 格式必须严格如下（不要包含任何 markdown 代码块或多余解释）：
+{
+  "items": [
+    { "type": "section", "text": "2.10" },
+    { "type": "product", "desc": "[JSJ-IST5] 伊斯坦布尔接送机 (${selectedVehicle})", "qty": 1, "price": 324 },
+    { "type": "section", "text": "导游" },
+    { "type": "product", "desc": "[GUIDE-CN] 中文导游", "qty": 2, "price": 500 }
+  ]
+}
+
+当前系统加载的完整产品库：
+${productCatalog.map(p => p.name + ' | ' + p.price).join('\n')}
+`;
+
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: apiModel,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: text }
+          ],
+          temperature: 0.1,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) {
+        let errMsg = `HTTP ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg += ` - ${JSON.stringify(errData)}`;
+        } catch(e){}
+        throw new Error(errMsg);
+      }
+
+      const data = await response.json();
+      let content = data.choices[0].message.content;
+      
+      let parsedData;
+      try {
+        parsedData = JSON.parse(content);
+      } catch (e) {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) parsedData = JSON.parse(jsonMatch[0]);
+        else throw new Error('AI 未返回标准 JSON 格式');
+      }
+
+      if (parsedData && parsedData.items && parsedData.items.length > 0) {
+        const newCostRows = [];
+        parsedData.items.forEach(item => {
+          if (item.type === 'section') {
+            newCostRows.push({ type: 'section', text: item.text || '' });
+          } else if (item.type === 'note') {
+            newCostRows.push({ type: 'note', text: item.text || '' });
+          } else {
+            newCostRows.push({ 
+              type: 'product', 
+              desc: item.desc || '', 
+              qty: item.qty || 1, 
+              price: item.price || 0, 
+              discount: 100 
+            });
+          }
+        });
+
+        costRows = newCostRows;
+        renderAll();
+        toggleDrawer('aiPanel');
+        alert(`✅ 解析成功！已按【${selectedVehicle}】及业务规则自动归类。请核对细节！`);
+      } else {
+        throw new Error('未能从文本中提取出有效的匹配项。');
+      }
+
+    } catch (error) {
+      console.error("AI 解析失败：", error);
+      alert(`❌ AI 解析失败！\n\n原因：${error.message}\n\n请检查网络或 API 余额。`);
+    } finally {
+      overlay.style.display = 'none';
+    }
+  }
+
+  // 辅助：确保输入框内拖选文字不被行拖拽打断
+  function bindTextSelectProtection(tr, dataArray, idx) {
+    tr.draggable = true;
+    tr.ondragstart = (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        e.preventDefault();
+        return false;
+      }
+      const prefix = dataArray === itineraryData ? 'itinerary:' : 'cost:';
+      e.dataTransfer.setData('text/plain', prefix + idx);
+    };
+    tr.ondragover = (e) => e.preventDefault();
+    tr.ondrop = (e) => {
+      e.preventDefault();
+      const prefix = dataArray === itineraryData ? 'itinerary' : 'cost';
+      const src = e.dataTransfer.getData('text/plain').split(':');
+      if (src[0] === prefix) {
+        const fromIdx = parseInt(src[1]);
+        if (!isNaN(fromIdx) && fromIdx !== idx) {
+          const item = dataArray.splice(fromIdx, 1)[0];
+          dataArray.splice(idx, 0, item);
+          renderAll();
+        }
+      }
+    };
+  }
+
+  function attachInputSelectionHandlers(container) {
+    container.querySelectorAll('input.editable').forEach(inp => {
+      inp.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        const tr = inp.closest('tr');
+        if (tr) tr.draggable = false;
+      });
+      inp.addEventListener('focus', () => {
+        const tr = inp.closest('tr');
+        if (tr) tr.draggable = false;
+      });
+      inp.addEventListener('blur', () => {
+        const tr = inp.closest('tr');
+        if (tr) tr.draggable = true;
+      });
+    });
+  }
+
+  function switchEmployee(newEmp) {
+    if (currentEmployee === newEmp) return;
+    saveState(); 
+    currentEmployee = newEmp;
+    localStorage.setItem('ulink_current_employee', newEmp);
+    document.getElementById('advisorName').value = newEmp;
+    loadDraftForEmployee(newEmp);
+    renderAll();
+    renderHistoryList();
+  }
+
+  function loadDraftForEmployee(empName) {
+    const key = `ulink_quote_draft_v12_${empName}`;
+    const savedState = localStorage.getItem(key);
+    
+    itineraryData = [];
+    costRows = [];
+    showDiscount = false;
+    document.querySelectorAll('.desc-input').forEach(el => el.value = '');
+    
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.itinerary) itineraryData = parsed.itinerary;
+        if (parsed.costRows) costRows = parsed.costRows;
+        if (parsed.showDiscount !== undefined) showDiscount = parsed.showDiscount;
+        
+        if (parsed.quoteNo) {
+          document.getElementById('quoteNo').value = parsed.quoteNo;
+          document.getElementById('quoteNoSpan').innerText = parsed.quoteNo;
+          document.getElementById('refOrder').value = parsed.quoteNo;
+        }
+        document.getElementById('advisorName').value = parsed.advisorName || empName;
+        document.getElementById('paxCount').value = parsed.paxCount || '';
+        document.getElementById('clientName').value = parsed.clientName || '';
+        
+        if (parsed.descs) {
+          Object.keys(parsed.descs).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = parsed.descs[id];
+          });
+        }
+      } catch(e){}
+    } else {
+      const newNo = generateNextQuoteNo(empName);
+      document.getElementById('quoteNo').value = newNo;
+      document.getElementById('quoteNoSpan').innerText = newNo;
+      document.getElementById('refOrder').value = newNo;
+      document.getElementById('advisorName').value = empName;
+      document.getElementById('paxCount').value = '';
+      document.getElementById('clientName').value = '';
+    }
+    
+    const now = new Date();
+    document.getElementById('versionTime').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function saveState() {
+    const descs = {};
+    document.querySelectorAll('.desc-input').forEach(el => {
+      descs[el.id] = el.value;
+    });
+
+    const payload = {
+      quoteNo: document.getElementById('quoteNo').value,
+      refOrder: document.getElementById('refOrder').value,
+      advisorName: document.getElementById('advisorName').value,
+      versionTime: document.getElementById('versionTime').value,
+      paxCount: document.getElementById('paxCount').value,
+      clientName: document.getElementById('clientName').value,
+      itinerary: itineraryData,
+      costRows: costRows,
+      showDiscount: showDiscount,
+      descs: descs
+    };
+
+    const key = `ulink_quote_draft_v12_${currentEmployee}`;
+    localStorage.setItem(key, JSON.stringify(payload));
+    saveToArchive(payload);
+  }
+
+  function renderAll() {
+    renderItinerary();
+    renderCosts();
+    saveState();
+  }
+
+  function syncQuoteNo() {
+    const val = document.getElementById('quoteNo').value;
+    document.getElementById('quoteNoSpan').innerText = val;
+    document.getElementById('refOrder').value = val;
+    saveState();
+  }
+
+  function toggleDiscount() {
+    showDiscount = !showDiscount;
+    document.getElementById('thDiscount').style.display = showDiscount ? 'table-cell' : 'none';
+    renderAll();
+  }
+
+  function getFormatTime() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  }
+
+  function downloadPDF() {
+    saveState();
+    const element = document.getElementById('pdfPage');
+    const qNo = document.getElementById('quoteNo').value || 'P00001';
+    
+    document.getElementById('footerAdvisor').innerText = document.getElementById('advisorName').value;
+    document.getElementById('footerDate').innerText = getFormatTime();
+    
+    const editElements = document.querySelectorAll('.edit-only, .bottom-action-bar, .custom-dropdown, .print-hide');
+    editElements.forEach(el => el.style.display = 'none');
+
+    const opt = {
+      margin:       0,
+      filename:     `ULINK报价单_${qNo}_${document.getElementById('advisorName').value}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['css', 'legacy'] }
+    };
+
+    html2pdf().from(element).set(opt).save().then(() => {
+      editElements.forEach(el => el.style.display = '');
+    }).catch(() => {
+      editElements.forEach(el => el.style.display = '');
+    });
+  }
+
+  function triggerPrint() {
+    saveState();
+    document.getElementById('footerAdvisor').innerText = document.getElementById('advisorName').value;
+    document.getElementById('footerDate').innerText = getFormatTime();
+    document.getElementById('productDropdown').style.display = 'none';
+    window.print();
+  }
+
+  // ========== 行程安排 ==========
+  function renderItinerary() {
+    const tbody = document.getElementById('itineraryBody');
+    tbody.innerHTML = '';
+    if(itineraryData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding: 10px; color:#999; border-bottom: 1px solid #333;">暂无行程</td></tr>';
+        return;
+    }
+    itineraryData.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      tr.className = 'draggable-row';
+      bindTextSelectProtection(tr, itineraryData, idx);
+
+      tr.innerHTML = `
+        <td><input class="editable num-input" value="${row.date||''}" onchange="itineraryData[${idx}].date=this.value; saveState()"></td>
+        <td class="text-left"><input class="editable" value="${row.route||''}" onchange="itineraryData[${idx}].route=this.value; saveState()"></td>
+        <td><input class="editable num-input" value="${row.spot||''}" onchange="itineraryData[${idx}].spot=this.value; saveState()"></td>
+        <td><input class="editable num-input" value="${row.meal||''}" onchange="itineraryData[${idx}].meal=this.value; saveState()"></td>
+        <td><input class="editable num-input" value="${row.ticket||''}" onchange="itineraryData[${idx}].ticket=this.value; saveState()"></td>
+        <td><input class="editable num-input" value="${row.guide||''}" onchange="itineraryData[${idx}].guide=this.value; saveState()"></td>
+        <td><input class="editable num-input" value="${row.hotel||''}" onchange="itineraryData[${idx}].hotel=this.value; saveState()"></td>
+        <td class="op-col print-hide"><button class="edit-only mini-btn del" onclick="itineraryData.splice(${idx},1); renderAll()">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    attachInputSelectionHandlers(tbody);
+  }
+
+  function addItineraryRow() {
+    itineraryData.push({ date: "", route: "", spot: "", meal: "", ticket: "", guide: "", hotel: "" });
+    renderAll();
+  }
+
+  // ========== 费用明细 ==========
+  function renderCosts() {
+    const tbody = document.getElementById('costBody');
+    tbody.innerHTML = '';
+    let grandTotal = 0;
+
+    if(costRows.length === 0) {
+        const colCount = showDiscount ? 6 : 5;
+        tbody.innerHTML = `<tr><td colspan="${colCount}" style="padding: 10px; color:#999;">暂无明细</td></tr>`;
+        document.getElementById('grandTotal').innerText = "0.0";
+        return;
+    }
+
+    let sections = [];
+    let currentSec = { titleRow: null, rows: [], subtotal: 0 };
+
+    costRows.forEach((row, idx) => {
+      if (row.type === 'section') {
+        if (currentSec.titleRow !== null || currentSec.rows.length > 0) sections.push(currentSec);
+        currentSec = { titleRow: { row, idx }, rows: [], subtotal: 0 };
+      } else {
+        if (row.type === 'product') {
+          const qty = parseFloat(row.qty) || 0;
+          const price = parseFloat(row.price) || 0;
+          const discountFactor = showDiscount ? ((parseFloat(row.discount) || 100) / 100) : 1;
+          const amt = qty * price * discountFactor;
+          currentSec.subtotal += amt;
+          grandTotal += amt;
+        }
+        currentSec.rows.push({ row, idx });
+      }
+    });
+    sections.push(currentSec);
+
+    sections.forEach(sec => {
+      if (sec.titleRow !== null) {
+        const tr = document.createElement('tr');
+        tr.className = 'draggable-row row-section';
+        bindTextSelectProtection(tr, costRows, sec.titleRow.idx);
+
+        tr.innerHTML = `
+          <td colspan="${showDiscount ? 4 : 3}" class="text-left" style="border-bottom: none;">
+            <input class="editable" value="${sec.titleRow.row.text || ''}" placeholder="输入小节标题（如 2.10）..." onchange="costRows[${sec.titleRow.idx}].text=this.value; saveState()">
+          </td>
+          <td style="border-bottom: none;"></td>
+          <td class="op-col print-hide" style="text-align:center; border-bottom: none;"><button class="edit-only mini-btn del" onclick="costRows.splice(${sec.titleRow.idx},1); renderAll()">×</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      sec.rows.forEach(item => {
+        const row = item.row;
+        const idx = item.idx;
+        const tr = document.createElement('tr');
+        tr.className = 'draggable-row ' + (row.type === 'note' ? 'row-note' : 'row-product');
+        bindTextSelectProtection(tr, costRows, idx);
+
+        if (row.type === 'note') {
+          tr.innerHTML = `
+            <td colspan="${showDiscount ? 4 : 3}" class="text-left">
+              <input class="editable" value="${row.text || ''}" placeholder="输入备注说明文字..." onchange="costRows[${idx}].text=this.value; saveState()">
+            </td>
+            <td></td>
+            <td class="op-col print-hide" style="text-align:center;"><button class="edit-only mini-btn del" onclick="costRows.splice(${idx},1); renderAll()">×</button></td>
+          `;
+        } else {
+          const qty = parseFloat(row.qty) || 0;
+          const price = parseFloat(row.price) || 0;
+          const discount = row.discount !== undefined ? parseFloat(row.discount) : 100;
+          const discountFactor = showDiscount ? (discount / 100) : 1;
+          const amount = qty * price * discountFactor;
+
+          tr.innerHTML = `
+            <td class="text-left">
+              <input class="editable product-input" value="${row.desc || ''}" placeholder="输入产品编号或关键词搜索..." onfocus="showProductDropdown(this, ${idx})" oninput="filterProductDropdown(this, ${idx}, this.value)" onchange="handleProductSelect(${idx}, this.value, false)">
+            </td>
+            <td><input class="editable num-input" type="number" step="0.5" value="${qty.toFixed(1)}" onchange="costRows[${idx}].qty=parseFloat(this.value)||0; renderCosts()"></td>
+            <td><input class="editable num-input" type="number" step="1" value="${price.toFixed(1)}" onchange="costRows[${idx}].price=parseFloat(this.value)||0; renderCosts()"></td>
+            ${showDiscount ? `<td><input class="editable num-input" type="number" step="1" value="${discount}" onchange="costRows[${idx}].discount=parseFloat(this.value)||100; renderCosts()"></td>` : ''}
+            <td style="text-align:center;">${amount.toFixed(1)}</td>
+            <td class="op-col print-hide" style="text-align:center;"><button class="edit-only mini-btn del" onclick="costRows.splice(${idx},1); renderAll()">×</button></td>
+          `;
+        }
+        tbody.appendChild(tr);
+      });
+
+      if (sec.subtotal > 0 || sec.rows.length > 0) {
+        const subTr = document.createElement('tr');
+        subTr.className = 'row-subtotal';
+        subTr.innerHTML = `
+          <td colspan="${showDiscount ? 5 : 4}" style="text-align:right; padding-right:10px;">小计:${sec.subtotal.toFixed(1)}</td>
+          <td class="op-col print-hide" style="border-top: none;"></td>
+        `;
+        tbody.appendChild(subTr);
+      }
+    });
+
+    attachInputSelectionHandlers(tbody);
+    document.getElementById('grandTotal').innerText = grandTotal.toFixed(1);
+    saveState();
+  }
+
+  function addCostRow(type) {
+    if (type === 'section') {
+      costRows.push({ type: 'section', text: '' });
+    } else if (type === 'note') {
+      costRows.push({ type: 'note', text: '' });
+    } else {
+      costRows.push({ type: 'product', desc: '', qty: 1, price: 0, discount: 100 });
+    }
+    renderAll();
+  }
+
+  // ========== 下拉框与搜索 ==========
+  function showProductDropdown(inputEl, idx) {
+    activeInputIdx = idx;
+    const dropdown = document.getElementById('productDropdown');
+    const rect = inputEl.getBoundingClientRect();
+    dropdown.style.left = rect.left + window.scrollX + 'px';
+    dropdown.style.top = rect.bottom + window.scrollY + 'px';
+    dropdown.style.width = Math.max(rect.width, 380) + 'px';
+    renderDropdownList(inputEl.value);
+    dropdown.style.display = 'block';
+  }
+
+  function filterProductDropdown(inputEl, idx, val) {
+    activeInputIdx = idx;
+    renderDropdownList(val);
+  }
+
+  function renderDropdownList(keyword) {
+    const dropdown = document.getElementById('productDropdown');
+    dropdown.innerHTML = '';
+    const kw = keyword.trim().toLowerCase();
+    
+    const filtered = productCatalog.filter(p => {
+      if (!kw) return true;
+      return p.name.toLowerCase().includes(kw) || (p.code && p.code.toLowerCase().includes(kw));
+    });
+
+    if (filtered.length === 0) {
+      dropdown.innerHTML = '<div style="padding: 8px; text-align: center; color: #999;">未找到匹配产品</div>';
+      return;
+    }
+
+    filtered.slice(0, 50).forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item';
+      div.innerHTML = `<span class="item-name" style="text-align:left;">${p.name}</span>`;
+      div.onmousedown = (e) => {
+        e.preventDefault(); 
+        handleProductSelect(activeInputIdx, p.name, true);
+        document.getElementById('productDropdown').style.display = 'none';
+      };
+      dropdown.appendChild(div);
+    });
+  }
+
+  function handleProductSelect(idx, val, isFromDropdown) {
+    costRows[idx].desc = val;
+    if (isFromDropdown) {
+      const matched = productCatalog.find(p => p.name === val);
+      if (matched) {
+        costRows[idx].price = matched.price;
+        if (costRows[idx].discount === undefined) costRows[idx].discount = 100;
+      }
+      renderAll();
+    } else {
+      const matched = productCatalog.find(p => p.name === val || p.code.toLowerCase() === val.trim().toLowerCase() || p.name.toLowerCase().includes(val.trim().toLowerCase()));
+      if (matched) {
+        costRows[idx].desc = matched.name;
+        costRows[idx].price = matched.price;
+        if (costRows[idx].discount === undefined) costRows[idx].discount = 100;
+      }
+      renderAll();
+    }
+  }
+
+  // ========== 数据导入解析 ==========
+  function toggleDrawer(id) {
+    const el = document.getElementById(id);
+    const nextDisplay = el.style.display === 'block' ? 'none' : 'block';
+    el.style.display = nextDisplay;
+    if (id === 'historyPanel' && nextDisplay === 'block') {
+      renderHistoryList();
+    }
+  }
+
+  function importFromPastedTxt() {
+    const raw = document.getElementById('txtCatalogInput').value.trim();
+    if (!raw) { alert('请先粘贴数据！'); return; }
+    processTextImport(raw);
+  }
+
+  function handleCatalogFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      if (typeof XLSX === 'undefined') {
+        alert('表格解析组件未加载，请直接复制粘贴导入！');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+          processImportedRows(rows);
+        } catch (err) {
+          alert('Excel 解析出错：' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = function(e) { processTextImport(e.target.result); };
+      reader.readAsText(file, 'UTF-8');
+    }
+  }
+
+  function processTextImport(text) {
+    const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/);
+    const rows = [];
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      let cols = [];
+      if (line.includes('\t')) cols = line.split('\t').map(s => s.trim());
+      else if (line.includes('|')) cols = line.split('|').map(s => s.trim());
+      else if (line.includes(',')) cols = line.split(',').map(s => s.trim());
+      else cols = line.split(/\s{2,}/).map(s => s.trim());
+      if (cols.length >= 2) rows.push(cols);
+    }
+    processImportedRows(rows);
+  }
+
+  function processImportedRows(rows) {
+    if (!rows || rows.length === 0) { alert('未检测到有效数据！'); return; }
+    let startIdx = 0;
+    let cCode = 1, cName = 2, cPrice = 3;
+
+    const firstRowStr = rows[0].map(c => String(c).trim().toLowerCase()).join('|');
+    if (/(编码|编号|code|名称|项目|name|单价|价格|price)/.test(firstRowStr)) {
+      startIdx = 1;
+      const headers = rows[0].map(c => String(c).trim().toLowerCase());
+      const findCol = (includes, excludes) => headers.findIndex(h =>
+        h && includes.some(k => h.includes(k)) && !(excludes || []).some(k => h.includes(k))
+      );
+
+      const fc = findCol(['编码', '编号', 'code', 'id'], ['名称', '项目', '分类', '说明']);
+      const fn = findCol(['名称', '项目', '产品', 'name', 'desc'], ['编码', '编号', 'code', 'id']);
+      const fp = findCol(['单价', '价格', '金额', 'price', 'cost'], ['折扣', '备注']);
+
+      if (fc !== -1) cCode = fc;
+      if (fn !== -1 && fn !== fc) cName = fn;
+      if (fp !== -1) cPrice = fp;
+    }
+
+    const newCatalog = [];
+    for (let i = startIdx; i < rows.length; i++) {
+      const r = rows[i].map(c => String(c ?? '').trim());
+      if (r.every(v => !v)) continue;
+
+      let code = r[cCode] || `ITEM-${i}`;
+      let name = r[cName] || '';
+      let priceStr = r[cPrice] || '0';
+
+      const price = parseFloat(String(priceStr).replace(/[^\d.-]/g, ''));
+      if (!name || isNaN(price)) continue;
+
+      let cleanName = name.replace(/^\[.*?\]\s*/, '');
+      const displayName = `[${code}] ${cleanName}`;
+      
+      newCatalog.push({ code, name: displayName, price });
+    }
+
+    if (newCatalog.length === 0) { alert('未能识别产品，请检查列格式。'); return; }
+
+    productCatalog = newCatalog;
+    localStorage.setItem('ulink_product_catalog_v12', JSON.stringify(productCatalog));
+    document.getElementById('catalogCountBadge').innerText = `已加载 ${productCatalog.length} 个产品`;
+    
+    alert(`🎉 成功导入 ${productCatalog.length} 个产品！`);
+    toggleDrawer('importPanel');
+  }
+
+  init();
+</script>
+</body>
+</html>
