@@ -3,7 +3,7 @@
     "quoteNo": "P60004",
     "refOrder": "P60004",
     "advisorName": "小高",
-    "versionTime": "2026-11-19 17:48",
+    "versionTime": "2026-11-20 13:27",
     "paxCount": "",
     "clientName": "",
     "itinerary": [],
@@ -218,7 +218,21 @@
       "descRefund": "",
       "descOther": ""
     },
-    "updatedAt": "2026-11-19 17:48:22",
+    "descModes": {
+      "descHotel": "含部分酒店",
+      "descCar": "无",
+      "descGuide": "无",
+      "descTicket": "无",
+      "descFlight": "无",
+      "descInsurance": "无",
+      "descMeal": "无",
+      "descShop": "无",
+      "descNotice": "无",
+      "descExtra": "无",
+      "descRefund": "无",
+      "descOther": "无"
+    },
+    "updatedAt": "2026-11-20 13:27:44.873359",
     "totalAmount": "38243.0"
   },
   {
