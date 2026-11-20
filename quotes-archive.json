@@ -51,13 +51,6 @@
       },
       {
         "type": "product",
-        "desc": "[WL-KAP-RQQ-HJ] 卡帕多奇亚-皇家热气球 (Royal Queen Flight, QUEEN：11/12月)",
-        "qty": 2,
-        "price": 1100,
-        "discount": 100
-      },
-      {
-        "type": "product",
         "desc": "[PTY-KAP-HHX-CN] 卡帕多奇亚拼团游 (中文, 混合线一日游)",
         "qty": 2,
         "price": 593,
@@ -72,6 +65,13 @@
         "desc": "[WL-KAP-RQQ-HJ] 卡帕多奇亚-联合热气球",
         "qty": 2,
         "price": 0,
+        "discount": 100
+      },
+      {
+        "type": "product",
+        "desc": "[WL-KAP-RQQ-HJ] 卡帕多奇亚-皇家热气球 (Royal Queen Flight, QUEEN：11/12月)",
+        "qty": 2,
+        "price": 1100,
         "discount": 100
       }
     ],
@@ -104,7 +104,7 @@
       "descRefund": "无",
       "descOther": "无"
     },
-    "updatedAt": "2026-11-20 17:00",
+    "updatedAt": "2026-11-20 17:01",
     "totalAmount": "5100.0"
   },
   {
